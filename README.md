@@ -5,6 +5,16 @@ A python utility to help align any equatorial telescope by imaging the Celestial
 
 Inspired by Dave Rowe http://www.considine.net/aplanatic/align.htm
 
+## 📖 Table of Contents
+- [Overview](#overview)
+- [Features](#features)
+- [What it Doesn't Do](#what-it-doesnt-do)
+- [Installation](#installation)
+- [Setup](#setup)
+- [Usage](#usage)
+- [Troubleshooting](#troubleshooting)
+- [Future Improvements](#future-improvements)
+
 ## Overview
 
 PhotoPolarAlign (PPA) is Python utility that can be used to Polar Align any Equatorial Telescope setup. It works by capturing images of the celestial pole region in two orientations, plate solving their positions, and calculating the error. Users can adjust the telescope and retest for fine alignment.
@@ -47,10 +57,12 @@ Download Microsoft Visual C++ 9.0 from a web archive [explained here](https://st
 
 The software originally depends on `ujson`, but does not require it if it is unable to be installed.
 1. Open `PPA.py` in a text editor.
-2. In `json2python` function near top of file, rename variable `json` to something like `data`
-3. In `json2python` and `python2json` functions near top of file, replace the `ujson` module with `json`
+2. In `json2python` function near top of file
+  - Rename variable `json` to something like `data`
+3. In `json2python` and `python2json` functions near top of file
+  - Replace the `ujson` module with `json`
 3. Save the file
-4. Install remaining pacakages with
+4. Install remaining packages with
     ```sh
     pip install numpy scipy pillow
     ```
@@ -82,7 +94,7 @@ Currently no documentation for local setup unfortunately.
 
 ## Usage
 - First, roughly align your telescope with the Celestial Pole region visible in your cameras view from 2 angles, roughly 90 degrees apart.
-- Take 2 images roughly 90 degrees apart form each other and get them onto your computer with PPA installed.
+- Take 2 images roughly 90 degrees apart from each other and get them onto your computer with PPA installed.
 - Run PPA with Python 2.7:
 ```sh
 py -2 PPA.py
@@ -108,7 +120,7 @@ py -2 PPA.py
 - **Python version errors** → Ensure you are using Python 2.7.18.
 - **Missing dependencies** → Install [required packages](#Prerequisites)
 - **`ujson` installation fails** → Modify `PPA.py` to use `json` instead.
-- **Microsoft Visual C++ 9.0 required** → Install [Micrsofto Visual C++ 9.0](#Prerequisites)
+- **Microsoft Visual C++ 9.0 required** → Install [Microsoft Visual C++ 9.0](#Prerequisites)
 
 ## Future Improvements
 - Testing and documenting the **local plate solving** feature.
