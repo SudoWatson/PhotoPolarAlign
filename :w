@@ -8,7 +8,6 @@ Inspired by Dave Rowe http://www.considine.net/aplanatic/align.htm
 ## Overview
 
 PhotoPolarAlign (PPA) is Python utility that can be used to Polar Align any Equatorial Telescope setup. It works by capturing images of the celestial pole region in two orientations, plate solving their positions, and providing alignment error feedback. Users can iteratively adjust their setup and improve alignment accuracy.
-![Main UI](path/to/ui_image_1.png)
 
 ## Features
 ✔️ **Graphical User Interface (GUI)**
@@ -62,13 +61,13 @@ py -2 PPA.py
 
 ## Setup
 On first startup, a settings page will appear. This can be reaccessed at any time by going to Files > Settings.
-If you have internet access when you are imaging, you can use <https://nova.astrometry.net> to plate solve your images online. If not, you'll have to install a local plate solver on your device.
+If you have internet access when you are imaging, you can use <nova.astrometry.net> to plate solve your images online. If not, you'll have to install a local plate solver on your device.
 <details>
     <summary>
         Nova
     </summary>
 
-    Create an account on <https://nova.astrometry.net>.
+    Create an account on <nova.astrometry.net>.
     In the top navigation bar, go to "API".
     In the middle in green text is your API key. Copy this, and paste it in PPA wher it asks for your nova key
 </details>
@@ -92,21 +91,23 @@ py -2 PPA.py
 The top part of the interface contains three buttons for uploading your images.
 The **two buttons on the left** are used to input the two initial calibration images you just took.
 - "Solved!" in red means the image has yet to be solved.
-
 Use the **"nova"** or **"local"** button next to each to run the respective plate solving method.
 - You can watch the terminal to view the status of the solve request. You cannot do anything in the UI until this request finishes.
 - Do not go to your submission in nova.astrometry.net to attempt to view it's status, as that will close the connection with the program. If you want to view the status of your submission, you can go to the API link that PPA puts into the terminal.
 - "Solved!" in green means the image has been solved.
+![Main UI](path/to/ui_image_1.png)
+
+![Calibration Image Input](path/to/ui_image_2.png)
 
 Once the two calibration images are solved:
 - Click **"Find Celestial Pole"** to compute and display the alignment error.
-
 Manually adjust your telescope to improve your error.
-
 You can check your new alignment:
 - Take a single new image and load it using the **rightmost button**.
 - Solve it using the same plate solving method.
 - Click **"Show Improvement"** to see the new error.
+
+![Alignment Process](path/to/ui_image_3.png)
 
 ## Local Plate Solving
 The software supports local plate solving, but this has not yet been documented. More information will be added later.
