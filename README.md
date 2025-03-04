@@ -7,14 +7,14 @@ Inspired by Dave Rowe http://www.considine.net/aplanatic/align.htm
 
 ## Overview
 
-PhotoPolarAlign (PPA) is Python utility that can be used to Polar Align any Equatorial Telescope setup. It works by capturing images of the celestial pole region in two orientations, plate solving their positions, and providing alignment error feedback. Users can iteratively adjust their setup and improve alignment accuracy.
+PhotoPolarAlign (PPA) is Python utility that can be used to Polar Align any Equatorial Telescope setup. It works by capturing images of the celestial pole region in two orientations, plate solving their positions, and calculating the error. Users can adjust the telescope and retest for fine alignment.
 
 ## Features
 ✔️ **Graphical User Interface (GUI)**
 
 ✔️ **Supports Nova API & Local Plate Solving**
 
-✔️ **Provides Alignment Error Feedback** 
+✔️ **Provides Alignment Error** 
 
 ✔️ **Works with Any Camera Setup**
 
@@ -29,7 +29,7 @@ PhotoPolarAlign (PPA) is Python utility that can be used to Polar Align any Equa
 PhotoPolarAlign is a Python application that currently only runs on Python 2.7. The latest tested version is Python 2.7.18.
 
 ### Prerequisites
-1. **Install Python 2.7.18**: Download and install from [official sources](https://www.python.org/ftp/python/2.7.18/).
+1. **Install Python 2.7.18**: Download and install from an [official source](https://www.python.org/ftp/python/2.7.18/).
 2. **Install Required Python Packages**:
    ```sh
    pip install numpy scipy pillow ujson
@@ -40,8 +40,8 @@ PhotoPolarAlign is a Python application that currently only runs on Python 2.7. 
 </summary>
 
 Download Microsoft Visual C++ 9.0 from a web archive [explained here](https://stackoverflow.com/a/67642436/10799348/).
-
 </details>
+
 <details>
 <summary>If you are unable to install `ujson`</summary>
 
@@ -54,17 +54,18 @@ The software originally depends on `ujson`, but does not require it if it is una
     ```sh
     pip install numpy scipy pillow
     ```
-
 </details>
 
 ## Running PhotoPolarAlign
 To launch the software, run it with Python 2.7:
 ```sh
 py -2 PPA.py
+```
 
 ## Setup
 On first startup, a settings page will appear. This can be reaccessed at any time by going to `Files > Settings`.
 If you have internet access when you are imaging, you can use <https://nova.astrometry.net> to plate solve your images online. If not, you'll have to install a local plate solver on your device.
+
 <details>
 <summary>Nova</summary>
 
@@ -72,6 +73,7 @@ If you have internet access when you are imaging, you can use <https://nova.astr
 - In the top navigation bar, go to "API"
 - In the middle in green text is your API key. Copy this, and paste it in the PPA settings where it asks for your nova key
 </details>
+
 <details>
 <summary>Local: No documentation yet</summary>
 
@@ -79,7 +81,7 @@ Currently no documentation for local setup unfortunately.
 </details>
 
 ## Usage
-- First you'll need to roughly align your telescope with the Celestial Pole region visible in your cameras view from 2 angles, roughly 90 degrees apart.
+- First, roughly align your telescope with the Celestial Pole region visible in your cameras view from 2 angles, roughly 90 degrees apart.
 - Take 2 images roughly 90 degrees apart form each other and get them onto your computer with PPA installed.
 - Run PPA with Python 2.7:
 ```sh
@@ -93,7 +95,8 @@ py -2 PPA.py
   - Do not go to your submission in <https://nova.astrometry.net> to attempt to view it's status, as that will close the connection with the program. If you want to view the status of your submission, you can go to the API link that PPA puts into the terminal.
   - "Solved!" in green means the image has been solved.
 - Once the two calibration images are solved:
-  - Click **"Find Celestial Pole"** to compute and display the alignment error.
+  - Click **"Find Celestial Pole"** to compute and display the alignment error in `HH:MM:SS`.
+  - An image will display showing where you are pointed as compared to the actual Celestial Pole.
 - Manually adjust your telescope to improve your error.
 - You can check your new alignment:
   - Take a single new image and load it using the **rightmost button**.
