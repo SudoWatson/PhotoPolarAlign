@@ -13,7 +13,6 @@ Inspired by Dave Rowe http://www.considine.net/aplanatic/align.htm
 - [Setup](#setup)
 - [Usage](#usage)
 - [Troubleshooting](#troubleshooting)
-- [Future Improvements](#future-improvements)
 
 ## Overview
 
@@ -121,7 +120,3 @@ py -2 PPA.py
 - **Missing dependencies** → Install [required packages](#Prerequisites)
 - **`ujson` installation fails** → Modify `PPA.py` to use `json` instead.
 - **Microsoft Visual C++ 9.0 required** → Install [Microsoft Visual C++ 9.0](#Prerequisites)
-
-## Future Improvements
-- Testing and documenting the **local plate solving** feature.
-- Explore upgrading for **Python 3 compatibility**.
