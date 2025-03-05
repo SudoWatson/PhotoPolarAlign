@@ -12,7 +12,6 @@ Inspired by Dave Rowe http://www.considine.net/aplanatic/align.htm
 - [Installation](#installation)
 - [Setup](#setup)
 - [Usage](#usage)
-- [Troubleshooting](#troubleshooting)
 
 ## Overview
 
@@ -41,11 +40,12 @@ PhotoPolarAlign (PPA) is Python utility that can be used to Polar Align any Equa
 1. Make sure you have **Python 3** installed on your device
 2. Clone this **repository**
 ```sh
-git clone https://github.com/ThemosTsikas/PhotoPolarAlign.git && cd PhotoPolarAlign
+git clone https://github.com/ThemosTsikas/PhotoPolarAlign.git &&
+cd PhotoPolarAlign
 ```
 3. Create a **Virtual Environment**
 ```sh
-python -m venv .venv
+python -m venv .venv &&
 .venv/Scripts/Activate.ps1
 ```
 4. Install **Required Python Packages**:
@@ -64,7 +64,8 @@ python PPA.py
 1. Make sure you have **Python 3** installed on your device
 2. Clone this **repository**
 ```sh
-git clone https://github.com/ThemosTsikas/PhotoPolarAlign.git && cd PhotoPolarAlign
+git clone https://github.com/ThemosTsikas/PhotoPolarAlign.git &&
+cd PhotoPolarAlign
 ```
 3. Install **TKinter** if it does not come with your Python installation
 ```sh
@@ -72,8 +73,8 @@ apt install python3-tk
 ```
 4. Create a **Virtual Environment**
 ```sh
-python -m venv --system-site-packages .venv
-soruce .venv/bin/activate
+python -m venv --system-site-packages .venv &&
+source .venv/bin/activate
 ```
 5. Install **Required Python Packages**:
 ```sh
