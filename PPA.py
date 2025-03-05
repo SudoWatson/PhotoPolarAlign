@@ -5,24 +5,12 @@ Created on Sun Oct 12 22:40:05 2014
 @author: Themos Tsikas, Jack Richmond
 """
 
-from logging import raiseExceptions
-import os
+from __future__ import print_function
 import sys
-import time
-import base64
-import shutil
-
+import json
 from urllib.parse import urlencode, quote
 from urllib.request import urlopen, Request
 from urllib.error import HTTPError
-
-#from exceptions import Exception
-from email.mime.base import MIMEBase
-from email.mime.multipart import MIMEMultipart
-from email.mime.application  import MIMEApplication
-
-from email.encoders import encode_noop
-import json
 
 
 class MalformedResponse(Exception):
