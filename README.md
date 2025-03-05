@@ -41,12 +41,12 @@ PhotoPolarAlign (PPA) is Python utility that can be used to Polar Align any Equa
 1. Make sure you have **Python 3** installed on your device
 2. Clone this **repository**
 ```sh
-git clone https://github.com/ThemosTsikas/PhotoPolarAlign.git
+git clone https://github.com/ThemosTsikas/PhotoPolarAlign.git && cd PhotoPolarAlign
 ```
 3. Create a **Virtual Environment**
 ```sh
 python -m venv .venv
-./.venv/Scripts/Activate.ps1
+.venv/Scripts/Activate.ps1
 ```
 4. Install **Required Python Packages**:
 ```sh
@@ -64,7 +64,7 @@ python PPA.py
 1. Make sure you have **Python 3** installed on your device
 2. Clone this **repository**
 ```sh
-git clone https://github.com/ThemosTsikas/PhotoPolarAlign.git
+git clone https://github.com/ThemosTsikas/PhotoPolarAlign.git && cd PhotoPolarAlign
 ```
 3. Install **TKinter** if it does not come with your Python installation
 ```sh
@@ -73,7 +73,7 @@ apt install python3-tk
 4. Create a **Virtual Environment**
 ```sh
 python -m venv --system-site-packages .venv
-soruce ./.venv/bin/activate
+soruce .venv/bin/activate
 ```
 5. Install **Required Python Packages**:
 ```sh
@@ -127,9 +127,3 @@ py -2 PPA.py
   - Solve it using the same plate solving method.
   - Click **"Show Improvement"** to see the new error.
   - Repeat this step until your error is small enough (usually under 5 minutes error is perfectly good)
-
-## Troubleshooting
-- **Python version errors** → Ensure you are using Python 2.7.18.
-- **Missing dependencies** → Install [required packages](#Prerequisites)
-- **`ujson` installation fails** → Modify `PPA.py` to use `json` instead.
-- **Microsoft Visual C++ 9.0 required** → Install [Microsoft Visual C++ 9.0](#Prerequisites)
