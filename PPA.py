@@ -932,7 +932,7 @@ class PhotoPolarAlign(Frame):
             cp = SkyCoord(ra=0, dec=-90, frame='fk5', unit='deg', equinox=now)
         cpj2000 = cp.transform_to(FK5(equinox='J2000'))
         cpskycrd = numpy.array([[cpj2000.ra.deg, cpj2000.dec.deg]],
-                               numpy.float_)
+                               numpy.float64)
         cpcrdi = wcsi.wcs_world2pix(cpskycrd, 1)
         scalei = scale_frm_header(headi)
         widthi, heighti = wid_hei_frm_header(headi)
@@ -1027,7 +1027,7 @@ class PhotoPolarAlign(Frame):
         cpj2000 = cp.transform_to(FK5(equinox='J2000'))
         # sky coordinates
         cpskycrd = numpy.array([[cpj2000.ra.deg, cpj2000.dec.deg]],
-                               numpy.float_)
+                               numpy.float64)
         # pixel coordinates
         cpcrdh = wcsh.wcs_world2pix(cpskycrd, 1)
         if self.hemi == 'N':
@@ -1047,7 +1047,7 @@ class PhotoPolarAlign(Frame):
             '''
             the movement of a sky object in the two images
             '''
-            pixcrd1 = numpy.array([coords], numpy.float_)
+            pixcrd1 = numpy.array([coords], numpy.float64)
             skycrd = wcsv.wcs_pix2world(pixcrd1, 1)
             pixcrd2 = wcsh.wcs_world2pix(skycrd, 1)
             return pixcrd2 - pixcrd1
@@ -1320,19 +1320,19 @@ class PhotoPolarAlign(Frame):
         import numpy
         import os 
         # a F8Ib 2.0 mag star, Alpha Ursa Minoris
-        self.polaris = numpy.array([[037.954561, 89.264109]], numpy.float_)
+        self.polaris = numpy.array([[037.954561, 89.264109]], numpy.float64)
         #
         # a M1III 6.4 mag star, Lambda Ursa Minoris
-        self.lam = numpy.array([[259.235229, 89.037706]], numpy.float_)
+        self.lam = numpy.array([[259.235229, 89.037706]], numpy.float64)
         #
         # a F0III 5.4 mag star, Sigma Octans
-        self.sigma = numpy.array([[317.195164, -88.956499]], numpy.float_)
+        self.sigma = numpy.array([[317.195164, -88.956499]], numpy.float64)
         #
         # a K3IIICN 5.3 mag star, Chi Octans
-        self.chi = numpy.array([[283.696388, -87.605843]], numpy.float_)
+        self.chi = numpy.array([[283.696388, -87.605843]], numpy.float64)
         #
         # a M1III 7.2 mag star, HD90104
-        self.red = numpy.array([[130.522862, -89.460536]], numpy.float_)
+        self.red = numpy.array([[130.522862, -89.460536]], numpy.float64)
         #
         # the pixel coords of the RA axis, if solution exists
         self.axis = None
