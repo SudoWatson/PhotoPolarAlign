@@ -37,6 +37,7 @@ PhotoPolarAlign (PPA) is Python utility that can be used to Polar Align any Equa
 ## Installation
 <details>
 <summary>Windows</summary>
+
 1. Make sure you have **Python 3** installed on your device
 2. Clone this **repository**
 ```sh
@@ -59,6 +60,7 @@ python PPA.py
 
 <details>
 <summary>Linux</summary>
+
 1. Make sure you have **Python 3** installed on your device
 2. Clone this **repository**
 ```sh
