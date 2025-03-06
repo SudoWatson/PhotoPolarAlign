@@ -30,6 +30,11 @@ def python2json(pyd):
     return json.dumps(pyd)
 
 
+# The following 'NovaClient' class is derived from the Astrometry.net software,
+# which is licensed under the BSD 3-Clause License - see LICENSES/BSD-3-Clause.txt
+#
+# Copyright 2009 Dustin Lang
+# https://github.com/dstndstn/astrometry.net
 class NovaClient(object):
     '''
     nova.astrometry.net client
