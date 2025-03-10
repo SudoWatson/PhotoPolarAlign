@@ -5,8 +5,12 @@ Created on Sun Oct 12 22:40:05 2014
 @author: Themos Tsikas, Jack Richmond
 """
 
+from __future__ import print_function
 import sys
-import time
+import json
+from urllib.parse import urlencode, quote
+from urllib.request import urlopen, Request
+from urllib.error import HTTPError
 
 
 class RequestError(Exception):
@@ -16,31 +20,27 @@ class RequestError(Exception):
     pass
 
 
-def json2python(json):
-    '''
-    translates JSON to python
-    '''
-    import ujson
+def json2python(data):
     try:
-        return ujson.loads(json)
+        return json.loads(data)
     except:
         pass
     return None
 
-
 def python2json(pyd):
-    '''
-    translates python  to JSON
-    '''
-    import ujson
-    return ujson.dumps(pyd)
+    return json.dumps(pyd)
 
 
+# The following 'NovaClient' class is derived from the Astrometry.net software,
+# which is licensed under the BSD 3-Clause License - see LICENSES/BSD-3-Clause.txt
+#
+# Copyright 2009 Dustin Lang
+# https://github.com/dstndstn/astrometry.net
 class NovaClient(object):
     '''
     nova.astrometry.net client
     '''
-    default_url = 'http://nova.astrometry.net/api/'
+    default_url = 'https://nova.astrometry.net/api/'
 
     def __init__(self, apiurl=default_url):
         self.session = None
@@ -57,84 +57,51 @@ class NovaClient(object):
         service: string
         args: dict
         '''
-        from email.mime.base import MIMEBase
-        from email.mime.multipart import MIMEMultipart
-        from email.encoders import encode_noop
-        from urllib2 import urlopen
-        from urllib2 import Request
-        from urllib2 import HTTPError
-        from urllib import urlencode
-        from email.mime.application import MIMEApplication
         if self.session is not None:
-            args.update({'session': self.session})
+            args.update({ 'session': self.session })
         # print 'Python:', (args)
         json = python2json(args)
         # print 'Sending json:', json
         url = self.get_url(service)
-        print 'Sending to URL:', url
+        print('Sending to URL:', url)
         # If we're sending a file, format a multipart/form-data
         if file_args is not None:
-            ma1 = MIMEBase('text', 'plain')
-            ma1.add_header('Content-disposition',
-                           'form-data; name="request-json"')
-            ma1.set_payload(json)
-            ma2 = MIMEApplication(file_args[1], 'octet-stream', encode_noop)
-            ma2.add_header('Content-disposition',
-                           'form-data; name="file"; filename="%s"'
-                           % file_args[0])
-            # msg.add_header('Content-Disposition', 'attachment',
-            # filename='bud.gif')
-            # msg.add_header('Content-Disposition', 'attachment',
-            # filename=('iso-8859-1', '', 'FuSballer.ppt'))
-            mpa = MIMEMultipart('form-data', None, [ma1, ma2])
-            # Makie a custom generator to format it the way we need.
-            from cStringIO import StringIO
-            from email.generator import Generator
-
-            class MyGenerator(Generator):
-                '''
-                not sure why we need this, copied from nova's example code
-                '''
-                def __init__(self, fp, root=True):
-                    Generator.__init__(self, fp, mangle_from_=False,
-                                       maxheaderlen=0)
-                    self.root = root
-
-                def _write_headers(self, msg):
-                    # We don't want to write the top-level headers;
-                    # they go into Request(headers) instead.
-                    if self.root:
-                        return
-                    # We need to use \r\n line-terminator, but Generator
-                    # doesn't provide the flexibility to override, so we
-                    # have to copy-n-paste-n-modify.
-                    for hoo, voo in msg.items():
-                        print >> self._fp, ('%s: %s\r\n' % (hoo, voo)),
-                        # A blank line always separates headers from body
-                    print >> self._fp, '\r\n',
-                    # The _write_multipart method calls "clone" for the
-                    # subparts.  We hijack that, setting root=False
-
-                def clone(self, fp):
-                    return MyGenerator(fp, root=False)
-            fpo = StringIO()
-            gen = MyGenerator(fpo)
-            gen.flatten(mpa)
-            data = fpo.getvalue()
-            headers = {'Content-type': mpa.get('Content-type')}
+            import random
+            boundary_key = ''.join([random.choice('0123456789') for _ in range(19)])
+            boundary = '===============%s==' % boundary_key
+            headers = {'Content-Type':
+                       'multipart/form-data; boundary="%s"' % boundary}
+            data_pre = (
+                '--' + boundary + '\n' +
+                'Content-Type: text/plain\r\n' +
+                'MIME-Version: 1.0\r\n' +
+                'Content-disposition: form-data; name="request-json"\r\n' +
+                '\r\n' +
+                json + '\n' +
+                '--' + boundary + '\n' +
+                'Content-Type: application/octet-stream\r\n' +
+                'MIME-Version: 1.0\r\n' +
+                'Content-disposition: form-data; name="file"; filename="%s"' % file_args[0] +
+                '\r\n' + '\r\n')
+            data_post = (
+                '\n' + '--' + boundary + '--\n')
+            data = data_pre.encode() + file_args[1] + data_post.encode()
         else:
             # Else send x-www-form-encoded
             data = {'request-json': json}
             # print 'Sending form data:', data
-            data = urlencode(data)
+            data = urlencode(data).encode('utf-8')
             # print 'Sending data:', data
             headers = {}
+
         request = Request(url=url, headers=headers, data=data)
         try:
             fle = urlopen(request)
             txt = fle.read()
             # DEBUG print 'Got json:', txt
             result = json2python(txt)
+            if not result:
+                raise RequestError('Server did not send valid json: ', txt)
             # DEBUG print 'Got result:', result
             stat = result.get('status')
             # DEBUG print 'Got status:', stat
@@ -142,23 +109,24 @@ class NovaClient(object):
                 errstr = result.get('errormessage', '(none)')
                 raise RequestError('server error message: ' + errstr)
             return result
-        except HTTPError, err:
-            print 'HTTPError', err
+        except HTTPError as err:
+            print('HTTPError', err)
             txt = err.read()
-            open('err.html', 'wb').write(txt)
-            print 'Wrote error text to err.html'
+            errFileName = 'err.html'
+            open(errFileName, 'wb').write(txt)
+            print('Wrote error text to ', errFileName)
 
     def login(self, apikey):
         '''
         Logs us into the plate-solver and gets a session key
         '''
         import string
-        args = {'apikey': string.strip(apikey)}
+        args = { 'apikey': apikey.strip() }
         result = self.send_request('login', args)
-        sess = result.get('session')
-        print 'Got session:', sess
+        sess = result.get('session') if result is not None else None
         if not sess:
             raise RequestError('no session in result')
+        print('Got session:', sess)
         self.session = sess
 
     def _get_upload_args(self, **kwargs):
@@ -202,7 +170,7 @@ class NovaClient(object):
             result = self.send_request('upload', args, (fne, fle.read()))
             return result
         except IOError:
-            print 'File %s does not exist' % fne
+            print('File %s does not exist' % fne)
             raise
 
     def myjobs(self):
@@ -237,7 +205,6 @@ class NovaClient(object):
         '''
         not sure what that does
         '''
-        from urllib import quote
         exact_option = 'exact=yes' if exact else ''
         result = self.send_request('jobs_by_tag?query=%s&%s'
                                    % (quote(tag.strip()), exact_option), {}, )
@@ -263,7 +230,7 @@ def limg2wcs(self, filename, wcsfn, hint):
         # Cygwin local or Linux local
         if True:
             # first rough estimate of scale
-            print '___________________________________________________________'
+            print('___________________________________________________________')
             cmd = 'solve-field -b ' + self.local_configfile.get()
             if self.havescale and self.restrict_scale.get()==1:
                 up_lim = self.scale*1.05
@@ -273,7 +240,7 @@ def limg2wcs(self, filename, wcsfn, hint):
                 cmd = cmd + ' -u ' + self.local_scale_units.get()
                 cmd = cmd + (' -L %.2f' % self.local_scale_low.get())
                 cmd = cmd + (' -H %.2f' % self.local_scale_hi.get())
-            if self.local_downscale.get() != 1:    
+            if self.local_downscale.get() != 1:
                 cmd = cmd + (' -z %d' % self.local_downscale.get())
             cmd = cmd + ' ' + self.local_xtra.get()
             cmd = cmd + ' -O '
@@ -281,23 +248,22 @@ def limg2wcs(self, filename, wcsfn, hint):
             template = ((self.local_shell.get() % cmd))
             # print template
             cmd = (template % filename)
-            print cmd
+            print(cmd)
             os.system(cmd)
             self.update_scale(hint)
-            print '___________________________________________________________'
+            print('___________________________________________________________')
     self.update_solved_labels(hint, 'active')
     stat_bar(self, 'Idle')
-    print 'local solve time ' + str(time.time()-t_start)
-    print '___________________________________________________________'            
+    print('local solve time ' + str(time.time()-t_start))
+    print('___________________________________________________________')
 
-    
+
 def img2wcs(self, ankey, filename, wcsfn, hint):
     '''
     Plate solves one image
     '''
     import optparse
     import time
-    from urllib2 import urlopen
     t_start = time.time()
     parser = optparse.OptionParser()
     parser.add_option('--server', dest='server',
@@ -379,7 +345,7 @@ def img2wcs(self, ankey, filename, wcsfn, hint):
                       help='Select license to disallow commercial use of' +
                       ' submission')
     # load opt with defaults, as above
-    opt, args = parser.parse_args([''.split()])
+    opt, args = parser.parse_args()
     # add given arguments
     opt.wcs = wcsfn
     opt.apikey = ankey
@@ -389,13 +355,13 @@ def img2wcs(self, ankey, filename, wcsfn, hint):
         opt.scale_est = ('%.2f' % self.scale)
         opt.scale_err = 5
     # DEBUG print opt
-    print 'with estimated scale', opt.scale_est
+    print('with estimated scale', opt.scale_est)
     args = {}
     args['apiurl'] = opt.server
-    clnt = NovaClient(**args)
+    client = NovaClient(**args)
     try:
-        clnt.login(opt.apikey)
-    except RequestError, URLError:
+        client.login(opt.apikey)
+    except RequestError:
         stat_bar(self, ("Couldn't log on to nova.astrometry.net " +
                         '- Check the API key'))
         return
@@ -425,20 +391,20 @@ def img2wcs(self, ankey, filename, wcsfn, hint):
         if opt.parity is not None:
             kwargs.update(parity=int(opt.parity))
         if opt.upload:
-            upres = clnt.upload(opt.upload, **kwargs)
+            upres = client.upload(opt.upload, **kwargs)
         stat = upres['status']
         if stat != 'success':
-            print 'Upload failed: status', stat
-            print upres
+            print('Upload failed: status', stat)
+            print(upres)
             sys.exit(-1)
         opt.sub_id = upres['subid']
     if opt.wait:
         if opt.job_id is None:
             if opt.sub_id is None:
-                print "Can't --wait without a submission id or job id!"
+                print("Can't --wait without a submission id or job id!")
                 sys.exit(-1)
             while True:
-                stat = clnt.sub_status(opt.sub_id, justdict=True)
+                stat = client.sub_status(opt.sub_id, justdict=True)
                 # print 'Got status:', stat
                 jobs = stat.get('jobs', [])
                 if len(jobs):
@@ -446,13 +412,13 @@ def img2wcs(self, ankey, filename, wcsfn, hint):
                         if j is not None:
                             break
                     if j is not None:
-                        print 'Selecting job id', j
+                        print('Selecting job id', j)
                         opt.job_id = j
                         break
                 time.sleep(5)
         success = False
         while True:
-            stat = clnt.job_status(opt.job_id, justdict=True)
+            stat = client.job_status(opt.job_id, justdict=True)
             # print 'Got job status:', stat
             # TODO : stat may be None! should recover
             if stat.get('status', '') in ['success']:
@@ -460,60 +426,60 @@ def img2wcs(self, ankey, filename, wcsfn, hint):
                 break
             time.sleep(5)
         if success:
-            clnt.job_status(opt.job_id)
+            client.job_status(opt.job_id)
             retrieveurls = []
             if opt.wcs:
                 # We don't need the API for this, just construct URL
                 url = opt.server.replace('/api/', '/wcs_file/%i' % opt.job_id)
                 retrieveurls.append((url, opt.wcs))
             for url, fne in retrieveurls:
-                print 'Retrieving file from', url
+                print('Retrieving file from', url)
                 fle = urlopen(url)
                 txt = fle.read()
                 wfl = open(fne, 'wb')
                 wfl.write(txt)
                 wfl.close()
-                print 'Wrote to', fne
+                print('Wrote to', fne)
                 self.update_solved_labels(hint, 'active')
                 stat_bar(self,'Idle')
-                print 'nova solve time ' + str(time.time()-t_start)
-                print '___________________________________________________________'            
+                print('nova solve time ' + str(time.time()-t_start))
+                print('___________________________________________________________')
         opt.job_id = None
         opt.sub_id = None
     if opt.sub_id:
-        print clnt.sub_status(opt.sub_id)
+        print(client.sub_status(opt.sub_id))
     if opt.job_id:
-        print clnt.job_status(opt.job_id)
+        print(client.job_status(opt.job_id))
     if opt.jobs_by_tag:
         tag = opt.jobs_by_tag
-        print clnt.jobs_by_tag(tag, None)
+        print(client.jobs_by_tag(tag, None))
     if opt.jobs_by_exact_tag:
         tag = opt.jobs_by_exact_tag
-        print clnt.jobs_by_tag(tag, 'yes')
+        print(client.jobs_by_tag(tag, 'yes'))
     if opt.myjobs:
-        jobs = clnt.myjobs()
-        print jobs
+        jobs = client.myjobs()
+        print(jobs)
 
-from Tkinter import Frame, Tk, Menu, Label, Entry, PhotoImage
-from Tkinter import Scrollbar, Toplevel, Canvas, Radiobutton
-from Tkinter import StringVar, IntVar, DoubleVar
-from Tkinter import Button, LabelFrame, Checkbutton, Scale
-from Tkinter import HORIZONTAL
+from tkinter import Frame, Tk, Menu, Label, Entry, PhotoImage
+from tkinter import Scrollbar, Toplevel, Canvas, Radiobutton
+from tkinter import StringVar, IntVar, DoubleVar
+from tkinter import Button, LabelFrame, Checkbutton, Scale
+from tkinter import HORIZONTAL
 
 def help_f():
     '''
     Our help window
     '''
-    import tkMessageBox
-    tkMessageBox.showinfo("Help", "Still to come...")
+    import tkinter.messagebox
+    tkinter.messagebox.showinfo("Help", "Still to come...")
 
 
 def about_f():
     '''
     our about window
     '''
-    import tkMessageBox
-    tkMessageBox.showinfo('About',
+    import tkinter.messagebox
+    tkinter.messagebox.showinfo('About',
                           'PhotoPolarAlign v1.0.4 \n' +
                           'Copyright Â© 2014 Themos Tsikas, ' +
                           'Jack Richmond')
@@ -539,7 +505,7 @@ def parity_frm_header(head):
     except KeyError:
         return 1
 
-    
+
 def scale_frm_header(head):
     '''
     look in the plate-solution header for the scale information
@@ -635,10 +601,10 @@ def cpcircle(centre, img, scl):
     ay1 = cen[1]
     number = [5, 10, 20, 40]
     for i in number:
-        rad = (i*60)/scl
+        rad = (i*60)//scl
         draw.ellipse((ax1 - rad, ay1 - rad, ax1 + rad, ay1 + rad),
                      fill=None, outline='Green')
-        draw.text((ax1 + (rad*26)/36, ay1 + (rad*26/36)), str(i),
+        draw.text((ax1 + (rad*26)//36, ay1 + (rad*26//36)), str(i),
                   font=font)
     draw.line((ax1 - 30, ay1) + (ax1 - 4, ay1), fill='Green', width=2)
     draw.line((ax1 +4, ay1) + (ax1 + 30, ay1), fill='Green', width=2)
@@ -657,39 +623,39 @@ class PhotoPolarAlign(Frame):
         # the API key
         if not self.config.has_section('nova'):
             self.config.add_section('nova')
-        self.config.set('nova', 'apikey', self.apikey.get())
+        self.config.set('nova', 'apikey', str(self.apikey.get()))
         # the image directory
         if not self.config.has_section('file'):
             self.config.add_section('file')
-        self.config.set('file', 'imgdir', self.imgdir)
+        self.config.set('file', 'imgdir', str(self.imgdir))
         # the geometry
         if not self.config.has_section('appearance'):
             self.config.add_section('appearance')
         self.config.set('appearance', 'geometry',
-                        self.myparent.winfo_geometry())
+                        str(self.myparent.winfo_geometry()))
         # the operating options
         if not self.config.has_section('operations'):
             self.config.add_section('operations')
         self.config.set('operations','restrict scale',
-                        self.restrict_scale.get())
+                        str(self.restrict_scale.get()))
         # the local solve options
         if not self.config.has_section('local'):
             self.config.add_section('local')
         self.config.set('local','shell',
-                        self.local_shell.get())
+                        str(self.local_shell.get()))
         self.config.set('local','downscale',
-                        self.local_downscale.get())
+                        str(self.local_downscale.get()))
         self.config.set('local','configfile',
-                        self.local_configfile.get())
+                        str(self.local_configfile.get()))
         self.config.set('local','scale_units',
-                        self.local_scale_units.get())
+                        str(self.local_scale_units.get()))
         self.config.set('local','scale_low',
-                        self.local_scale_low.get())
+                        str(self.local_scale_low.get()))
         self.config.set('local','scale_hi',
-                        self.local_scale_hi.get())
+                        str(self.local_scale_hi.get()))
         self.config.set('local','xtra',
-                        self.local_xtra.get())
-        #
+                        str(self.local_xtra.get()))
+
         with open(self.cfgfn, 'w') as cfgfile:
             self.config.write(cfgfile)
         cfgfile.close()
@@ -701,8 +667,8 @@ class PhotoPolarAlign(Frame):
         self.write_config_file()
         self.wvar4.configure(text=('%.3s...........' % self.apikey.get()))
         self.settings_win.destroy()
-                                
-        
+
+
     def settings_open(self):
         '''
         Our Settings window
@@ -726,7 +692,7 @@ class PhotoPolarAlign(Frame):
 
         frm = LabelFrame(win, borderwidth=2, relief='ridge', text='Local solver Configuration')
         frm.pack(side='top', ipadx=20, padx=20, fill='x')
-        
+
         nxt = Label(frm, text='shell')
         nxt.grid(row=0, column=0, pady=4, sticky='w')
         nxt = Entry(frm, textvariable=self.local_shell,width=0)
@@ -758,7 +724,7 @@ class PhotoPolarAlign(Frame):
         nxt.pack(side='left')
         nxt = Radiobutton(ifrm, variable=self.local_scale_units,value='arcminwidth',text='arcminutes width')
         nxt.pack(side='left')
-        
+
         nxt = Label(frm, text='scale_low')
         nxt.grid(row=4, column=0, pady=4, sticky='w')
         nxt = Scale(frm, from_=0, to_=40, orient=HORIZONTAL,
@@ -784,7 +750,7 @@ class PhotoPolarAlign(Frame):
         nxt = Button(frm, text='Read from AstroTortilla configuration',
                      command=self.slurpAT)
         nxt.grid(row=7, column=0, pady=4, sticky='we', columnspan=3)
-        
+
         Button(win, text='OK', command=self.settings_destroy).pack(pady=4)
 
     def quit_method(self):
@@ -813,7 +779,7 @@ class PhotoPolarAlign(Frame):
         '''
         User wants to select an image file
         '''
-        import tkFileDialog
+        import tkinter.filedialog
         from os.path import splitext, dirname, basename
         options = {}
         options['filetypes'] = [('JPEG files', '.jpg .jpeg .JPG .JPEG'),
@@ -824,7 +790,7 @@ class PhotoPolarAlign(Frame):
         titles['h'] = 'The horizontal image of the Celestial Pole region'
         titles['i'] = 'The horizontal image after Alt/Az adjustment'
         options['title'] = titles[hint]
-        img = tkFileDialog.askopenfilename(**options)
+        img = tkinter.filedialog.askopenfilename(**options)
         if img:
             wcs = splitext(img)[0] + '.wcs'
             if self.happy_with(wcs, img):
@@ -878,12 +844,15 @@ class PhotoPolarAlign(Frame):
         if hint == 'h':
             aimg = self.himg_fn
             awcs = self.hwcs_fn
-        if hint == 'v':
+        elif hint == 'v':
             aimg = self.vimg_fn
             awcs = self.vwcs_fn
-        if hint == 'i':
+        elif hint == 'i':
             aimg = self.iimg_fn
             awcs = self.iwcs_fn
+        else:
+            raise Exception('Invalid hint passed:', hint)
+
         try:
             open(aimg)
         except IOError:
@@ -896,7 +865,7 @@ class PhotoPolarAlign(Frame):
         if solver=='local':
             limg2wcs(self, aimg, awcs, hint)
         self.update_scale(hint)
-            
+
     def update_display(self, cpcrd, the_scale):
         '''
         update Computed displayed quantities
@@ -912,20 +881,20 @@ class PhotoPolarAlign(Frame):
         self.wvar5.configure(text=('%.2f' % the_scale))
         self.wvar6.configure(text=str(int(x1a))+','+str(int(y1a)))
         self.wvar7.configure(text=(str(int(x2a)) +',' + str(int(y2a))))
-        err = the_scale*numpy.sqrt((x1a-x2a)**2 + (y1a-y2a)**2)/60.0
+        err = the_scale*numpy.sqrt((x1a-x2a)**2 + (y1a-y2a)**2)//60.0
         self.wvar8.configure(text=('%.2f' % err))
         if x2a > x1a:
             inst = 'Right '
         else:
             inst = 'Left '
-        ddeg = abs(x2a - x1a)*the_scale/3600.0
+        ddeg = abs(x2a - x1a)*the_scale//3600.0
         inst = inst + ('%02d:%02d:%02d' % decdeg2dms(ddeg))
         self.wvar9.configure(text=inst)
         if y2a > y1a:
             inst = inst + ' Down '
         else:
             inst = inst + ' Up '
-        ddeg = abs(y2a - y1a)*the_scale/3600.0
+        ddeg = abs(y2a - y1a)*the_scale//3600.0
         inst = inst + ('%02d:%02d:%02d' % decdeg2dms(ddeg))
         self.wvar9.configure(text=inst)
 
@@ -969,7 +938,7 @@ class PhotoPolarAlign(Frame):
             cp = SkyCoord(ra=0, dec=-90, frame='fk5', unit='deg', equinox=now)
         cpj2000 = cp.transform_to(FK5(equinox='J2000'))
         cpskycrd = numpy.array([[cpj2000.ra.deg, cpj2000.dec.deg]],
-                               numpy.float_)
+                               numpy.float64)
         cpcrdi = wcsi.wcs_world2pix(cpskycrd, 1)
         scalei = scale_frm_header(headi)
         widthi, heighti = wid_hei_frm_header(headi)
@@ -1002,7 +971,7 @@ class PhotoPolarAlign(Frame):
             right = int(max(cpcrdi[0][0], ori[0][0], whi[0][0], axis[0]))
             bottom = int(min(cpcrdi[0][1], ori[0][1], whi[0][1], axis[1]))
             top = int(max(cpcrdi[0][1], ori[0][1], whi[0][1], axis[1]))
-        margin = int(2500/scalei)
+        margin = int(2500//scalei)
         xl = max(1, left - margin)
         xr = min(widthi, right + margin)
         yt = min(heighti, top + margin)
@@ -1064,13 +1033,13 @@ class PhotoPolarAlign(Frame):
         cpj2000 = cp.transform_to(FK5(equinox='J2000'))
         # sky coordinates
         cpskycrd = numpy.array([[cpj2000.ra.deg, cpj2000.dec.deg]],
-                               numpy.float_)
+                               numpy.float64)
         # pixel coordinates
         cpcrdh = wcsh.wcs_world2pix(cpskycrd, 1)
         if self.hemi == 'N':
-            print 'Northern Celestial Pole', dech
+            print('Northern Celestial Pole', dech)
         else:
-            print 'Southern Celestial Pole', dech
+            print('Southern Celestial Pole', dech)
         scaleh = scale_frm_header(headh)
         widthh, heighth = wid_hei_frm_header(headh)
         if wid_hei_frm_header(headh) != wid_hei_frm_header(headv):
@@ -1079,16 +1048,16 @@ class PhotoPolarAlign(Frame):
         if parity_frm_header(headh) == 0 or parity_frm_header(headv) == 0 :
             stat_bar(self, 'Wrong parity...')
             return
-        
+
         def displacement(coords):
             '''
             the movement of a sky object in the two images
             '''
-            pixcrd1 = numpy.array([coords], numpy.float_)
+            pixcrd1 = numpy.array([coords], numpy.float64)
             skycrd = wcsv.wcs_pix2world(pixcrd1, 1)
             pixcrd2 = wcsh.wcs_world2pix(skycrd, 1)
             return pixcrd2 - pixcrd1
-        axis = scipy.optimize.broyden1(displacement, [widthh/2, heighth/2])
+        axis = scipy.optimize.broyden1(displacement, [widthh//2, heighth//2])
         self.axis = axis
         self.update_display(cpcrdh, scaleh)
         #
@@ -1116,7 +1085,7 @@ class PhotoPolarAlign(Frame):
             right = int(max(cpcrdh[0][0], orh[0][0], whh[0][0], axis[0]))
             bottom = int(min(cpcrdh[0][1], orh[0][1], whh[0][1], axis[1]))
             top = int(max(cpcrdh[0][1], orh[0][1], whh[0][1], axis[1]))
-        margin = int(2500/scaleh)
+        margin = int(2500//scaleh)
         xl = max(1, left - margin)
         xr = min(widthh, right + margin)
         yt = min(heighth, top + margin)
@@ -1180,39 +1149,39 @@ class PhotoPolarAlign(Frame):
         widget.update()
 
     def slurpAT(self):
-        import tkFileDialog
-        import ConfigParser
+        import tkinter.filedialog
+        import configparser
         stat_bar(self,'Reading...')
         options = {}
         options['filetypes'] = [('Config files', '.cfg'),
                                 ('all files', '.*')]
         options['initialdir'] = self.imgdir
         options['title'] = 'The AstroTortilla configuration file'
-        cfg_fn = tkFileDialog.askopenfilename(**options)
-        config = ConfigParser.SafeConfigParser()
+        cfg_fn = tkinter.filedialog.askopenfilename(**options)
+        config = configparser.ConfigParser()
         config.read(cfg_fn)
         for s in config.sections():
             if s == 'Solver-AstrometryNetSolver':
                 for o in config.options(s):
                     if o == 'configfile':
-                        self.local_configfile.set(config.get(s,o, None))
+                        self.local_configfile.set(config.get(s,o))
                     elif o == 'shell':
-                        self.local_shell.set(config.get(s,o, None))
+                        self.local_shell.set(config.get(s,o))
                     elif o == 'downscale':
-                        self.local_downscale.set(config.get(s,o, None))
+                        self.local_downscale.set(config.getint(s,o))
                     elif o == 'scale_units':
-                        self.local_scale_units.set(config.get(s,o,None))
+                        self.local_scale_units.set(config.get(s,o))
                     elif o == 'scale_low':
-                        self.local_scale_low.set(config.get(s,o,None))
+                        self.local_scale_low.set(config.getfloat(s,o,))
                     elif o == 'scale_max':
-                        self.local_scale_hi.set(config.get(s,o, None))
+                        self.local_scale_hi.set(config.getfloat(s,o))
                     elif o == 'xtra':
-                        self.local_xtra.set(config.get(s,o,None))
-                        
+                        self.local_xtra.set(config.get(s,o,))
+
         stat_bar(self,'Idle')
         return
-    
-    def create_widgets(self, master=None):
+
+    def create_widgets(self, master):
         '''
         creates the main window components
         '''
@@ -1353,23 +1322,23 @@ class PhotoPolarAlign(Frame):
         self.wstat = nxt
 
     def __init__(self, master=None):
-        import ConfigParser
+        import configparser
         import numpy
         import os 
         # a F8Ib 2.0 mag star, Alpha Ursa Minoris
-        self.polaris = numpy.array([[037.954561, 89.264109]], numpy.float_)
+        self.polaris = numpy.array([[037.954561, 89.264109]], numpy.float64)
         #
         # a M1III 6.4 mag star, Lambda Ursa Minoris
-        self.lam = numpy.array([[259.235229, 89.037706]], numpy.float_)
+        self.lam = numpy.array([[259.235229, 89.037706]], numpy.float64)
         #
         # a F0III 5.4 mag star, Sigma Octans
-        self.sigma = numpy.array([[317.195164, -88.956499]], numpy.float_)
+        self.sigma = numpy.array([[317.195164, -88.956499]], numpy.float64)
         #
         # a K3IIICN 5.3 mag star, Chi Octans
-        self.chi = numpy.array([[283.696388, -87.605843]], numpy.float_)
+        self.chi = numpy.array([[283.696388, -87.605843]], numpy.float64)
         #
         # a M1III 7.2 mag star, HD90104
-        self.red = numpy.array([[130.522862, -89.460536]], numpy.float_)
+        self.red = numpy.array([[130.522862, -89.460536]], numpy.float64)
         #
         # the pixel coords of the RA axis, if solution exists
         self.axis = None
@@ -1386,35 +1355,35 @@ class PhotoPolarAlign(Frame):
         self.local_scale_low = DoubleVar()
         self.local_scale_hi = DoubleVar()
         self.local_xtra = StringVar()
-        
+
 
         # Read the User preferences
-        self.config = ConfigParser.ConfigParser()
+        self.config = configparser.ConfigParser()
         self.config.read(self.cfgfn)
         # ...the key
         try:
-            k_ini = self.config.get('nova', 'apikey', None)
+            k_ini = self.config.get('nova', 'apikey')
         except :
             k_ini = None
         self.apikey = StringVar(value=k_ini)
         # ...the Image directory
-        try: 
-            self.imgdir = self.config.get('file', 'imgdir', None)
-        except :        
+        try:
+            self.imgdir = self.config.get('file', 'imgdir')
+        except :
             self.imgdir = None
         # ...geometry
         try:
-            self.usergeo = self.config.get('appearance', 'geometry', None)
+            self.usergeo = self.config.get('appearance', 'geometry')
         except :
             self.usergeo = None
         master.geometry(self.usergeo)
         # do we want to help solves by restricting the scale once we have an estimate
-        self.restrict_scale = IntVar(0)
+        self.restrict_scale = IntVar(value=0)
         try:
-            self.restrict_scale.set(self.config.get('operations','restrict scale', 0))
+            self.restrict_scale.set(self.config.getint('operations','restrict scale'))
         except:
             self.restrict_scale.set(0)
-            
+
         # the filenames of images
         self.vimg_fn = ''
         self.havev = False
@@ -1478,7 +1447,7 @@ class PhotoPolarAlign(Frame):
 
         self.myparent = None
 
-        
+
         self.stat_msg = 'Idle'
         Frame.__init__(self, master)
         self.create_widgets(master)
@@ -1487,17 +1456,17 @@ class PhotoPolarAlign(Frame):
         self.wlhsol.configure(state='disabled')
         self.wlisol.configure(state='disabled')
         try:
-            self.local_shell.set(self.config.get('local','shell',''))
-            self.local_downscale.set(self.config.get('local','downscale',1))
-            self.local_configfile.set(self.config.get('local','configfile',''))
-            self.local_scale_units.set(self.config.get('local','scale_units',''))
-            self.local_scale_low.set(self.config.get('local','scale_low',0))
-            self.local_scale_hi.set(self.config.get('local','scale_hi',0))
-            self.local_xtra.set(self.config.get('local','xtra',''))
+            self.local_shell.set(self.config.get('local','shell'))
+            self.local_downscale.set(self.config.getint('local','downscale'))
+            self.local_configfile.set(self.config.get('local','configfile'))
+            self.local_scale_units.set(self.config.get('local','scale_units'))
+            self.local_scale_low.set(self.config.getfloat('local','scale_low'))
+            self.local_scale_hi.set(self.config.getfloat('local','scale_hi'))
+            self.local_xtra.set(self.config.get('local','xtra'))
             # check solve-field cmd
             exit_status = os.system(self.local_shell.get() % 'solve-field > /dev/null')
             if exit_status != 0:
-                print "Can't use local astrometry.net solver, check PATH"
+                print("Can't use local astrometry.net solver, check PATH")
             else:
                 self.wlvsol.configure(state='active')
                 self.wlhsol.configure(state='active')
