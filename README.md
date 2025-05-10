@@ -125,7 +125,7 @@ https://astrometrynet.readthedocs.io/en/latest/readme.html
 
 6) Put the followed data in ‘Local Solver Configuration’:
 
-shell:   '/bin / bash --login -c “%%s”
+shell:   /bin / bash --login -c “%%s”
 
 scale:  1 or 2  (do some test)
 
