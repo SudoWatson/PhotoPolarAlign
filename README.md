@@ -104,11 +104,7 @@ If you have internet access when you are imaging, you can use <https://nova.astr
 
 Platesolving in local mode go much faster as in Nova (online) and does not require any internet connection.
 
-
-
-
 - Linux (Debian family)
-
 1) Download astrometry.net:
 $ sudo apt update
 $ sudo apt install astrometry.net 
@@ -126,11 +122,17 @@ https://astrometrynet.readthedocs.io/en/latest/readme.html
 5) Open Photo Polar Align ‘Setting’  window
 
 6) Put the followed data in ‘Local Solver Configuration’:
+
 shell:   '/bin / bash --login -c “%%s”
+
 scale:   2  
+
 configfile:   /etc/astrometry.cfg 
+
 scale_units:   arcsec/pix 
+
 scale_low and scale_down,  which define the lower and upper limits of the arcsec/pix value and allow you to reduce any platesolver measurement errors (you can get arcsec/pix value for your specific photographic setup reading it in Nova solving output)
+
 'extra', some parameters-usually unnecessary and rarely useful-can be given to speed up the platesolving process.
 
 7) Click 'Ok': the PPA.ini file will be saved in the PhotoPolarAlign directory.
