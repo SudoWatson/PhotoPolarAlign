@@ -102,7 +102,7 @@ If you have internet access when you are imaging, you can use <https://nova.astr
 <details>
 <summary>Local Platesolving</summary>
 
-Currently no documentation for local setup unfortunately.
+Coming soon ...
 </details>
 
 ## Usage
