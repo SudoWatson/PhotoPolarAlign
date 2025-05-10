@@ -100,7 +100,7 @@ If you have internet access when you are imaging, you can use <https://nova.astr
 </details>
 
 <details>
-<summary>Local: No documentation yet</summary>
+<summary>Local Platesolving</summary>
 
 Currently no documentation for local setup unfortunately.
 </details>
