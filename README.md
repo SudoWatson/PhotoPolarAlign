@@ -125,7 +125,7 @@ https://astrometrynet.readthedocs.io/en/latest/readme.html
 
 shell:   '/bin / bash --login -c “%%s”
 
-scale:   2  
+scale:  1 or 2  (do some test)
 
 configfile:   /etc/astrometry.cfg 
 
