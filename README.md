@@ -117,7 +117,7 @@ These files (taken from 4100 and 4200-series only) will have to be downloaded se
 
 https://astrometrynet.readthedocs.io/en/latest/readme.html 
 
-3) Copy the index files to the directory: /usr/bin/astrometry
+3) Copy the index files to the directory: /usr/share/astrometry
 
 4) Launch PPA.py
 
@@ -154,10 +154,12 @@ It will create  its ~/astrometry/data directory where, through a specific functi
 4), 5) same as in Linux
 
 6) Put the followed data in ‘Local Solver Configuration’:
+
 shell:  C:/Users/<user>/AppData/Local/Astrometry/bin/bash --login -c "%%s 
+
 scale:   2  
-configfile:  /etc/astrometry/backend.cfg 
-… follow as in Linux
+
+configfile:  /etc/astrometry/backend.cfg … follow as in Linux
 
 7) same as in Linux
 </details>
