@@ -102,7 +102,60 @@ If you have internet access when you are imaging, you can use <https://nova.astr
 <details>
 <summary>Local Platesolving</summary>
 
-Coming soon ...
+Platesolving in local mode go much faster as in Nova (online) and does not require any internet connection.
+
+
+
+
+- Linux (Debian family)
+
+1) Download astrometry.net:
+$ sudo apt update
+$ sudo apt install astrometry.net 
+   the installation will create the file 'backend.cfg' in the /etc directory
+
+2) Download the index files needed for platesolving. 
+These files (taken from 4100 and 4200-series only) will have to be downloaded separately from https://data.astrometry.net/ , by choosing them according to the width in degrees of the celestial field taken by your camera as explained here:
+
+https://astrometrynet.readthedocs.io/en/latest/readme.html 
+
+3) Copy the index files to the directory: /usr/bin/astrometry
+
+4) Launch PPA.py
+
+5) Open Photo Polar Align ‘Setting’  window
+
+6) Put the followed data in ‘Local Solver Configuration’:
+shell:   '/bin / bash --login -c “%%s”
+scale:   2  
+configfile:   /etc/astrometry.cfg 
+scale_units:   arcsec/pix 
+scale_low and scale_down,  which define the lower and upper limits of the arcsec/pix value and allow you to reduce any platesolver measurement errors (you can get arcsec/pix value for your specific photographic setup reading it in Nova solving output)
+'extra', some parameters-usually unnecessary and rarely useful-can be given to speed up the platesolving process.
+
+7) Click 'Ok': the PPA.ini file will be saved in the PhotoPolarAlign directory.
+---
+To perform platesolving in local mode - after running the PPA.py script, you will need to perform all the steps mentioned in the 'Nova' section, with the only difference being that you will have to click the Local buttons not Nova ones.
+
+---
+- Windows 10 & 11
+
+1) Install the APSP software from: https://www.astrogb.com/astrogb/All_Sky_Plate_Solver.html
+It will create  its ~/astrometry/data directory where, through a specific function, it will allow to select the necessary index files and downloading these from the Internet.
+
+2) Nothing to do
+
+3) Copy the index files to the directory:  C:/Users/<user>/AppData/Local/Astrometry/usr/share/astrometry/data/
+
+4), 5) same as in Linux
+
+6) Put the followed data in ‘Local Solver Configuration’:
+shell:  C:/Users/<user>/AppData/Local/Astrometry/bin/bash --login -c "%%s 
+scale:   2  
+configfile:  /etc/astrometry/backend.cfg 
+… follow as in Linux
+
+7) same as in Linux
 </details>
 
 ## Usage
