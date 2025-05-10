@@ -106,9 +106,11 @@ Platesolving in local mode go much faster as in Nova (online) and does not requi
 
 - Linux (Debian family)
 1) Download astrometry.net:
+
 $ sudo apt update
+
 $ sudo apt install astrometry.net 
-   the installation will create the file 'backend.cfg' in the /etc directory
+   the installation will create the file 'astrometry.cfg' in the /etc directory
 
 2) Download the index files needed for platesolving. 
 These files (taken from 4100 and 4200-series only) will have to be downloaded separately from https://data.astrometry.net/ , by choosing them according to the width in degrees of the celestial field taken by your camera as explained here:
@@ -145,7 +147,7 @@ To perform platesolving in local mode - after running the PPA.py script, you wil
 1) Install the APSP software from: https://www.astrogb.com/astrogb/All_Sky_Plate_Solver.html
 It will create  its ~/astrometry/data directory where, through a specific function, it will allow to select the necessary index files and downloading these from the Internet.
 
-2) Nothing to do
+2) the configfile is 'backend.cfg'
 
 3) Copy the index files to the directory:  C:/Users/<user>/AppData/Local/Astrometry/usr/share/astrometry/data/
 
