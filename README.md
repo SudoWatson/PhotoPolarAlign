@@ -127,7 +127,7 @@ https://astrometrynet.readthedocs.io/en/latest/readme.html
 
 shell:   /bin / bash --login -c “%%s”
 
-scale:  1 or 2  (do some test)
+scale:  commonly 1 or 2  (do some test)
 
 configfile:   /etc/astrometry.cfg 
 
@@ -135,33 +135,40 @@ scale_units:   arcsec/pix
 
 scale_low and scale_down,  which define the lower and upper limits of the arcsec/pix value and allow you to reduce any platesolver measurement errors (you can get arcsec/pix value for your specific photographic setup reading it in Nova solving output)
 
-'extra', some parameters-usually unnecessary and rarely useful-can be given to speed up the platesolving process.
+'extra': you can put in some parameters-usually unnecessary and rarely useful-can be given to speed up the platesolving process.
 
 7) Click 'Ok': the PPA.ini file will be saved in the PhotoPolarAlign directory.
 ---
-To perform platesolving in local mode - after running the PPA.py script, you will need to perform all the steps mentioned in the 'Nova' section, with the only difference being that you will have to click the Local buttons not Nova ones.
-
----
 - Windows 10 & 11
 
-1) Install the APSP software from: https://www.astrogb.com/astrogb/All_Sky_Plate_Solver.html
+1) Install the ASPS software from: https://www.astrogb.com/astrogb/All_Sky_Plate_Solver.html
 It will create  its ~/astrometry/data directory where, through a specific function, it will allow to select the necessary index files and downloading these from the Internet.
 
 2) the configfile is 'backend.cfg'
 
-3) Copy the index files to the directory:  C:/Users/<user>/AppData/Local/Astrometry/usr/share/astrometry/data/
+3) same as in Linux 4)
 
-4), 5) same as in Linux
+4) same as in Linux 5)
 
-6) Put the followed data in ‘Local Solver Configuration’:
+5) Put the followed data in ‘Local Solver Configuration’:
 
-shell:  C:/Users/<user>/AppData/Local/Astrometry/bin/bash --login -c "%%s 
+   shell:  C:/Users/<user>/AppData/Local/Astrometry/bin/bash --login -c "%%s 
 
-scale:   2  
+   scale:  commonly 1 or 2  (do some test)
 
-configfile:  /etc/astrometry/backend.cfg … follow as in Linux
+   configfile:  /etc/astrometry/backend.cfg … follow as in Linux
+
+   scale_units:  as in Linux
+
+   scale_low and scale_down: as in Linux
+
+   extra:  put the parameter "-p" to avoid the warning: "FITSFixedWarning: The WCS transformation has more axes (2) than the image it is associated with (0) [astropy.wcs.wcs]"
+           related to output: "solve-field.c:327:plot_source_overlay Plotting command failed"
+           Windows doesn't have "plotxy" function (it is Linux environment only.
+           In any case, that function is not necessary for PhotoPolarAlign to do its job.
 
 7) same as in Linux
+ 
 </details>
 
 ## Usage
@@ -187,3 +194,5 @@ py -2 PPA.py
   - Solve it using the same plate solving method.
   - Click **"Show Improvement"** to see the new error.
   - Repeat this step until your error is small enough (usually under 5 minutes error is perfectly good)
+---
+To perform platesolving in local mode - after running the PPA.py script, you will need to do all the steps mentioned for online usage, with the only difference being that you will have to click the 'Local' buttons instead of 'Nova' ones.
