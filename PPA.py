@@ -554,7 +554,7 @@ def wid_hei_frm_header(head):
             return 0, 0
 
 def decdeg2dms(dd):
-    mnt,sec = divmod(dd*3600,60)
+    mnt,sec = divmod(dd*60,60)
     deg,mnt = divmod(mnt,60)
     return deg,mnt,sec
 
@@ -886,14 +886,14 @@ class PhotoPolarAlign(Frame):
             inst = 'Right '
         else:
             inst = 'Left '
-        ddeg = abs(x2a - x1a)*the_scale//3600.0
+        ddeg = abs(x2a - x1a)*the_scale/60.0
         inst = inst + ('%02d:%02d:%02d' % decdeg2dms(ddeg))
         self.wvar9.configure(text=inst)
         if y2a > y1a:
             inst = inst + ' Down '
         else:
             inst = inst + ' Up '
-        ddeg = abs(y2a - y1a)*the_scale//3600.0
+        ddeg = abs(y2a - y1a)*the_scale/60.0
         inst = inst + ('%02d:%02d:%02d' % decdeg2dms(ddeg))
         self.wvar9.configure(text=inst)
 
