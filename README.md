@@ -109,8 +109,9 @@ Platesolving in local mode runs much faster as in Nova (online) and does not req
 
 $ sudo apt update
 
-$ sudo apt install astrometry.net 
-   the installation will create the file 'astrometry.cfg' in the /etc directory
+$ sudo apt install astrometry.net
+
+The installation will create the file 'astrometry.cfg' in the /etc directory
 
 2) Download the index files needed for platesolving. 
 These files (taken from 4100 and 4200-series only) will have to be downloaded separately from https://data.astrometry.net/ , by choosing them according to the width in degrees of the celestial field taken by your camera as explained here:
