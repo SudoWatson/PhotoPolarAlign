@@ -102,7 +102,7 @@ If you have internet access when you are imaging, you can use <https://nova.astr
 <details>
 <summary>Local Platesolving</summary>
 
-Platesolving in local mode go much faster as in Nova (online) and does not require any internet connection.
+Platesolving in local mode run much faster as in Nova (online) and does not require any internet connection.
 
 - Linux (Debian family)
 1) Download astrometry.net:
