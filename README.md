@@ -3,7 +3,7 @@
 
 A python utility to help align any equatorial telescope by imaging the Celestial Pole region.
 
-Inspired by Dave Rowe http://www.considine.net/aplanatic/align.htm
+Inspired by Dave Rowe https://web.archive.org/web/20210126061304/http://www.considine.net/aplanatic/align.htm
 
 ## 📖 Table of Contents
 - [Overview](#overview)
