@@ -222,11 +222,12 @@ def stat_bar(self, txt):
 def limg2wcs(self, filename, wcsfn, hint):
     import os
     import time
+    import platform
     t_start = time.time()
-    if (('OSTYPE' in os.environ and os.environ['OSTYPE']=='linux') or
-        (os.uname()[0]=='Linux') or
+    if ((os.uname()[0]=='Linux') or
         ('OSTYPE' in os.environ and os.environ['OSTYPE']=='darwin') or
-        ('OS'     in os.environ and os.environ['OS']    =='Windows_NT')):
+        ('OS'     in os.environ and os.environ['OS']    =='Windows_NT') or
+        ('OSTYPE' in os.environ and os.environ['OSTYPE']=='linux')):
         # Cygwin local or Linux local
         if True:
             # first rough estimate of scale
