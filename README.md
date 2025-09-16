@@ -107,10 +107,10 @@ Currently no documentation for local setup unfortunately.
 
 ## Usage
 - First, roughly align your telescope with the Celestial Pole region visible in your cameras view from 2 angles, roughly 90 degrees apart.
-- Take 2 images roughly 90 degrees apart from each other and get them onto your computer with PPA installed.
-- Run PPA with Python 2.7:
+- Take 2 images: 1 horizontally, and 1 roughly 90 degrees clockwise. Get them onto your computer with PPA installed.
+- Run PPA with Python:
 ```sh
-py -2 PPA.py
+python PPA.py
 ```
 - The top part of the interface contains three buttons for uploading your images.
 - The **two buttons on the left** are used to input the two initial calibration images you just took.
@@ -122,6 +122,7 @@ py -2 PPA.py
 - Once the two calibration images are solved:
   - Click **"Find Celestial Pole"** to compute and display the alignment error in `HH:MM:SS`.
   - An image will display showing where you are pointed as compared to the actual Celestial Pole.
+  - The error in dd:mm:ss will display for each axis.
 - Manually adjust your telescope to improve your error.
 - You can check your new alignment:
   - Take a single new image and load it using the **rightmost button**.
