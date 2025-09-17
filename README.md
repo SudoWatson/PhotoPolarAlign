@@ -100,31 +100,27 @@ If you have internet access when you are imaging, you can use <https://nova.astr
 </details>
 
 <details>
-<summary>Local Platesolving</summary>
+<summary>Local Plate Solving</summary>
 
-Platesolving in local mode runs much faster as in Nova (online) and does not require any internet connection.
+Plate solving in local mode runs much faster than Nova (online) and does not require any internet connection.
 
-- Linux (Debian family)
-1) Download astrometry.net:
+<details>
+<summary>Linux/MacOS</summary>
+Astrometry.net provides a downloadable software for doing plate solving for Linux and MacOS systems, as well as potentially Windows Subsystem for Linux (WSL).
 
-$ sudo apt update
+1) Download astrometry.net: `apt install astrometry.net` (MacOS use `brew`)
+The installation will create the config file `astrometry.cfg` in the /etc directory
 
-$ sudo apt install astrometry.net
+2) Download the index files for the size of images you will be taking from https://data.astrometry.net/ 
+These files contain landmarks of celestial objects to determine where your photo is in the sky. The index files are specific to the FOV your images cover in the sky. Smaller FOVs will need more landmarks and thus larger file sizes. Use this website to determine what files you will want:  https://astrometrynet.readthedocs.io/en/latest/readme.html
 
-The installation will create the file 'astrometry.cfg' in the /etc directory
-
-2) Download the index files needed for platesolving. 
-These files (taken from 4100 and 4200-series only) will have to be downloaded separately from https://data.astrometry.net/ , by choosing them according to the width in degrees of the celestial field taken by your camera as explained here:
-
-https://astrometrynet.readthedocs.io/en/latest/readme.html 
-
-3) Copy the index files to the directory: /usr/share/astrometry
+3) Move the index files to the directory: `/usr/share/astrometry`
 
 4) Launch PPA.py
 
-5) Open Photo Polar Align ‘Setting’  window
+5) Open Photo Polar Align ‘Setting’ window
 
-6) Put the followed data in ‘Local Solver Configuration’:
+6) Put the following settings in ‘Local Solver Configuration’:
 
 shell:   /bin / bash --login -c “%%s”
 
@@ -139,8 +135,9 @@ scale_low and scale_down,  which define the lower and upper limits of the arcsec
 'extra': you can put in some parameters-usually unnecessary and rarely useful-can be given to speed up the platesolving process.
 
 7) Click 'Ok': the PPA.ini file will be saved in the PhotoPolarAlign directory.
----
-- Windows 10 & 11
+</details>
+<details>
+<summary>Windows</summary>
 
 1) Install the ASPS software from: https://www.astrogb.com/astrogb/All_Sky_Plate_Solver.html
 It will create  its ~/astrometry/data directory where, through a specific function, it will allow to select the necessary index files and downloading these from the Internet.
@@ -171,6 +168,7 @@ It will create  its ~/astrometry/data directory where, through a specific functi
 7) same as in Linux
  
 </details>
+</details>
 
 ## Usage
 - First, roughly align your telescope with the Celestial Pole region visible in your cameras view from 2 angles, roughly 90 degrees apart.
@@ -195,5 +193,3 @@ py -2 PPA.py
   - Solve it using the same plate solving method.
   - Click **"Show Improvement"** to see the new error.
   - Repeat this step until your error is small enough (usually under 5 minutes error is perfectly good)
----
-To perform platesolving in local mode - after running the PPA.py script, you will need to do all the steps mentioned for online usage, with the only difference being that you will have to click the 'Local' buttons instead of 'Nova' ones.
