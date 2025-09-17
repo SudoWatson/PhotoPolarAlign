@@ -150,7 +150,7 @@ It will create  its ~/astrometry/data directory where, through a specific functi
 
 5) Put the following data in ‘Local Solver Configuration’:
 ```
-   shell:  C:/Users/<user>/AppData/Local/Astrometry/bin/bash --login -c "%%s 
+   shell:  C:/Users/<user>/AppData/Local/Astrometry/bin/bash --login -c "%%s"
 
    scale:  commonly 1 or 2  (do some test)
 
