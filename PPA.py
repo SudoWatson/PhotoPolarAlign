@@ -224,10 +224,10 @@ def limg2wcs(self, filename, wcsfn, hint):
     import time
     import platform
     t_start = time.time()
-    if ((os.uname()[0]=='Linux') or
-        ('OSTYPE' in os.environ and os.environ['OSTYPE']=='darwin') or
-        ('OS'     in os.environ and os.environ['OS']    =='Windows_NT') or
-        ('OSTYPE' in os.environ and os.environ['OSTYPE']=='linux')):
+    if (('OS'     in os.environ and os.environ['OS']    =='Windows_NT') or
+        ('OSTYPE' in os.environ and os.environ['OSTYPE']=='linux') or
+        (os.uname()[0]=='Linux') or
+        ('OSTYPE' in os.environ and os.environ['OSTYPE']=='darwin')): 
         # Cygwin local or Linux local
         if True:
             # first rough estimate of scale

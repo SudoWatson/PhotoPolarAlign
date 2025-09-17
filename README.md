@@ -100,9 +100,73 @@ If you have internet access when you are imaging, you can use <https://nova.astr
 </details>
 
 <details>
-<summary>Local: No documentation yet</summary>
+<summary>Local Plate Solving</summary>
 
-Currently no documentation for local setup unfortunately.
+Plate solving in local mode runs much faster than Nova (online) and does not require any internet connection.
+
+<details>
+<summary>Linux/MacOS</summary>
+Astrometry.net provides a downloadable software for doing plate solving on Linux and MacOS systems, as well as potentially Windows Subsystem for Linux (WSL).
+
+1) Download astrometry.net: `apt install astrometry.net` (MacOS use `brew`)
+The installation will create the config file `astrometry.cfg` in the `/etc` directory
+
+2) Download the index files for the size of images you will be taking from https://data.astrometry.net/ 
+These files contain landmarks of celestial objects to determine where your photo is in the sky. The index files are specific to the FOV your images cover in the sky. Smaller FOVs will need more landmarks and thus larger file sizes. Use this website to determine what files you will want:  https://astrometrynet.readthedocs.io/en/latest/readme.html
+
+3) Move the index files to the directory: `/usr/share/astrometry`
+
+4) Launch PPA.py
+
+5) Open Photo Polar Align ‘Setting’ window
+
+6) Put the following settings in ‘Local Solver Configuration’:
+```
+shell:   /bin / bash --login -c “%%s”
+
+scale:  commonly 1 or 2  (do some test)
+
+configfile:   /etc/astrometry.cfg 
+
+scale_units:   arcsec/pix 
+
+scale_low and scale_hi:  These define the lower and upper limits of the arcsec/pix value and allow you to reduce any platesolver measurement errors (you can get arcsec/pix value for your specific photographic setup reading it in Nova solving output)
+
+'extra': you can put in some parameters-usually unnecessary and rarely useful-can be given to speed up the platesolving process.
+```
+7) Click 'Ok': the PPA.ini file will be saved in the PhotoPolarAlign directory.
+</details>
+<details>
+<summary>Windows</summary>
+
+1) Install the ASPS software from: https://www.astrogb.com/astrogb/All_Sky_Plate_Solver.html
+It will create  its ~/astrometry/data directory where, through a specific function, it will allow to select the necessary index files and downloading these from the Internet.
+
+2) the configfile is 'backend.cfg'
+
+3) Launch PPA.py
+
+4) Open Photo Polar Align ‘Setting’ window
+
+5) Put the following data in ‘Local Solver Configuration’:
+```
+   shell:  C:/Users/<user>/AppData/Local/Astrometry/bin/bash --login -c "%%s 
+
+   scale:  commonly 1 or 2  (do some test)
+
+   configfile:  /etc/astrometry/backend.cfg … follow as in Linux
+
+   scale_units:  arcsec/pix 
+
+   scale_low and scale_hi: These define the lower and upper limits of the arcsec/pix value and allow you to reduce any platesolver measurement errors (you can get arcsec/pix value for your specific photographic setup reading it in Nova solving output)
+
+   extra:  put the parameter "-p" to avoid the warning: `FITSFixedWarning: The WCS transformation has more axes (2) than the image it is associated with (0) [astropy.wcs.wcs]`
+           related to output: "solve-field.c:327:plot_source_overlay Plotting command failed"
+           Windows doesn't have "plotxy" function (it is Linux environment only), but the function is not necessary for us.
+```
+7) Click 'Ok': the PPA.ini file will be saved in the PhotoPolarAlign directory.
+ 
+</details>
 </details>
 
 ## Usage
