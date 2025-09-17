@@ -1281,30 +1281,33 @@ class PhotoPolarAlign(Frame):
         nxt.grid(row=4, column=1, sticky='e')
         self.wvar4 = nxt
 
+        nxt = Label(self.wfrvar, text = '                ') # Spacing between columns
+        nxt.grid(row=0, column=2, columnspan=1, sticky='w')
+
         nxt = Label(self.wfrvar, text = 'Computed')
-        nxt.grid(row=0, column=3, columnspan=2, sticky='w')
+        nxt.grid(row=0, column=4, columnspan=2, sticky='w')
         nxt = Label(self.wfrvar, text='Scale (arcsec/pixel):')
-        nxt.grid(row=1, column=2, sticky='w')
+        nxt.grid(row=1, column=3, sticky='w')
         if self.havescale:
             nxt = Label(self.wfrvar, text=self.scale)
         else:
             nxt = Label(self.wfrvar, text='--.--')
-        nxt.grid(row=1, column=3, sticky='e')
+        nxt.grid(row=1, column=4, sticky='e')
         self.wvar5 = nxt
         nxt = Label(self.wfrvar, text='RA axis position:')
-        nxt.grid(row=2, column=2, sticky='w')
+        nxt.grid(row=2, column=3, sticky='w')
         nxt = Label(self.wfrvar, text='---,---')
-        nxt.grid(row=2, column=3, sticky='e')
+        nxt.grid(row=2, column=4, sticky='e')
         self.wvar6 = nxt
         nxt = Label(self.wfrvar, text='CP position:')
-        nxt.grid(row=3, column=2, sticky='w')
+        nxt.grid(row=3, column=3, sticky='w')
         nxt = Label(self.wfrvar, text='---,---')
-        nxt.grid(row=3, column=3, sticky='e')
+        nxt.grid(row=3, column=4, sticky='e')
         self.wvar7 = nxt
         nxt = Label(self.wfrvar, text='Error (arcmin):')
-        nxt.grid(row=4, column=2, sticky='w')
+        nxt.grid(row=4, column=3, sticky='w')
         nxt = Label(self.wfrvar, text='--.--')
-        nxt.grid(row=4, column=3, sticky='e')
+        nxt.grid(row=4, column=4, sticky='e')
         self.wvar8 = nxt
         # #################################################################
         nxt = LabelFrame(master, borderwidth=2, relief='ridge',
