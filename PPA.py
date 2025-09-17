@@ -605,7 +605,7 @@ def cpcircle(centre, img, scl):
         rad = (i*60)/scl
         draw.ellipse((ax1 - rad, ay1 - rad, ax1 + rad, ay1 + rad),
                      fill=None, outline='Green')
-        draw.text((ax1 + (rad*26)/36, ay1 + (rad*26/36)), str(i),
+        draw.text((ax1 + (rad*26)/36, ay1 + (rad*26/36)), str(i) + "'",
                   font=font)
     draw.line((ax1 - 30, ay1) + (ax1 - 4, ay1), fill='Green', width=2)
     draw.line((ax1 +4, ay1) + (ax1 + 30, ay1), fill='Green', width=2)
