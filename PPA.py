@@ -83,7 +83,7 @@ class NovaClient(object):
                 'MIME-Version: 1.0\r\n' +
                 'Content-disposition: form-data; name="file"; filename="%s"' % file_args[0] +
                 '\r\n' + '\r\n')
-            data_post = (
+            data_post = (    if (('OSTYPE' in os.environ and os.environ['OSTYPE']=='linux') or
                 '\n' + '--' + boundary + '--\n')
             data = data_pre.encode() + file_args[1] + data_post.encode()
         else:
@@ -222,6 +222,7 @@ def stat_bar(self, txt):
 def limg2wcs(self, filename, wcsfn, hint):
     import os
     import time
+    import platform
     t_start = time.time()
     if (('OS'     in os.environ and os.environ['OS']    =='Windows_NT') or
         ('OSTYPE' in os.environ and os.environ['OSTYPE']=='linux') or
@@ -601,10 +602,10 @@ def cpcircle(centre, img, scl):
     ay1 = cen[1]
     number = [5, 10, 20, 40]
     for i in number:
-        rad = (i*60)//scl
+        rad = (i*60)/scl
         draw.ellipse((ax1 - rad, ay1 - rad, ax1 + rad, ay1 + rad),
                      fill=None, outline='Green')
-        draw.text((ax1 + (rad*26)//36, ay1 + (rad*26//36)), str(i),
+        draw.text((ax1 + (rad*26)/36, ay1 + (rad*26/36)), str(i) + "'",
                   font=font)
     draw.line((ax1 - 30, ay1) + (ax1 - 4, ay1), fill='Green', width=2)
     draw.line((ax1 +4, ay1) + (ax1 + 30, ay1), fill='Green', width=2)
@@ -881,20 +882,20 @@ class PhotoPolarAlign(Frame):
         self.wvar5.configure(text=('%.2f' % the_scale))
         self.wvar6.configure(text=str(int(x1a))+','+str(int(y1a)))
         self.wvar7.configure(text=(str(int(x2a)) +',' + str(int(y2a))))
-        err = the_scale*numpy.sqrt((x1a-x2a)**2 + (y1a-y2a)**2)//60.0
+        err = the_scale*numpy.sqrt((x1a-x2a)**2 + (y1a-y2a)**2)/60.0
         self.wvar8.configure(text=('%.2f' % err))
         if x2a > x1a:
             inst = 'Right '
         else:
             inst = 'Left '
-        ddeg = abs(x2a - x1a)*the_scale/60.0
+        ddeg = abs(x2a - x1a)*the_scale/3600.0
         inst = inst + ('%02d:%02d:%02d' % decdeg2dms(ddeg))
         self.wvar9.configure(text=inst)
         if y2a > y1a:
             inst = inst + ' Down '
         else:
             inst = inst + ' Up '
-        ddeg = abs(y2a - y1a)*the_scale/60.0
+        ddeg = abs(y2a - y1a)*the_scale/3600.0
         inst = inst + ('%02d:%02d:%02d' % decdeg2dms(ddeg))
         self.wvar9.configure(text=inst)
 
@@ -971,7 +972,7 @@ class PhotoPolarAlign(Frame):
             right = int(max(cpcrdi[0][0], ori[0][0], whi[0][0], axis[0]))
             bottom = int(min(cpcrdi[0][1], ori[0][1], whi[0][1], axis[1]))
             top = int(max(cpcrdi[0][1], ori[0][1], whi[0][1], axis[1]))
-        margin = int(2500//scalei)
+        margin = int(2500/scalei)
         xl = max(1, left - margin)
         xr = min(widthi, right + margin)
         yt = min(heighti, top + margin)
@@ -1057,7 +1058,7 @@ class PhotoPolarAlign(Frame):
             skycrd = wcsv.wcs_pix2world(pixcrd1, 1)
             pixcrd2 = wcsh.wcs_world2pix(skycrd, 1)
             return pixcrd2 - pixcrd1
-        axis = scipy.optimize.broyden1(displacement, [widthh//2, heighth//2])
+        axis = scipy.optimize.broyden1(displacement, [widthh/2, heighth/2])
         self.axis = axis
         self.update_display(cpcrdh, scaleh)
         #
@@ -1085,7 +1086,7 @@ class PhotoPolarAlign(Frame):
             right = int(max(cpcrdh[0][0], orh[0][0], whh[0][0], axis[0]))
             bottom = int(min(cpcrdh[0][1], orh[0][1], whh[0][1], axis[1]))
             top = int(max(cpcrdh[0][1], orh[0][1], whh[0][1], axis[1]))
-        margin = int(2500//scaleh)
+        margin = int(2500/scaleh)
         xl = max(1, left - margin)
         xr = min(widthh, right + margin)
         yt = min(heighth, top + margin)
@@ -1411,7 +1412,7 @@ class PhotoPolarAlign(Frame):
         self.wfrop = None
         self.wvfn = None
         self.wvsol = None
-        self.wlvsol = None
+        self.wlvsol = None    if (('OSTYPE' in os.environ and os.environ['OSTYPE']=='linux') or
         self.wvok = None
 
         self.whfn = None
