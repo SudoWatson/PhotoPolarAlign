@@ -83,7 +83,7 @@ class NovaClient(object):
                 'MIME-Version: 1.0\r\n' +
                 'Content-disposition: form-data; name="file"; filename="%s"' % file_args[0] +
                 '\r\n' + '\r\n')
-            data_post = (    if (('OSTYPE' in os.environ and os.environ['OSTYPE']=='linux') or
+            data_post = (
                 '\n' + '--' + boundary + '--\n')
             data = data_pre.encode() + file_args[1] + data_post.encode()
         else:
@@ -556,7 +556,7 @@ def wid_hei_frm_header(head):
             return 0, 0
 
 def decdeg2dms(dd):
-    mnt,sec = divmod(dd*60,60)
+    mnt,sec = divmod(dd*3600,60)
     deg,mnt = divmod(mnt,60)
     return deg,mnt,sec
 
@@ -1412,7 +1412,7 @@ class PhotoPolarAlign(Frame):
         self.wfrop = None
         self.wvfn = None
         self.wvsol = None
-        self.wlvsol = None    if (('OSTYPE' in os.environ and os.environ['OSTYPE']=='linux') or
+        self.wlvsol = None
         self.wvok = None
 
         self.whfn = None
