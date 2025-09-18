@@ -1,4 +1,4 @@
-NOTE: This license only applies to the 'NovaClient' class in the PPA.py file. The rest of the codebase is in the Public Domain - see LICENSES/LICENSE
+NOTE: This license only applies to the 'NovaClient.py' file.py file. The rest of the codebase is in the Public Domain - see LICENSES/LICENSE
 
 
 
