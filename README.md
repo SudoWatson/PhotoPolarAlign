@@ -191,6 +191,7 @@ It will create  its ~/astrometry/data directory where, through a specific functi
 - First, roughly align your telescope with the Celestial Pole region visible in your cameras view from 2 angles, roughly 90 degrees apart.
 - Take 2 images: 1 horizontally, and 1 roughly 90 degrees clockwise. Get them onto your computer with PPA installed.
 - Run PPA with Python:
+
 On Windows:
 ```sh
 .venv/Scripts/Activate.ps1
