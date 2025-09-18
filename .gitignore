@@ -9,3 +9,4 @@ apt_thumbs/i.png
 apt_thumbs/v.png
 PPA.ini
 .venv
+__pycache__/
