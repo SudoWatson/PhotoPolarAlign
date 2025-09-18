@@ -86,6 +86,24 @@ python PPA.py
 ```
 </details>
 
+<details>
+<summary>NixOS</summary>
+
+1. Clone this **repository**
+```sh
+git clone https://github.com/ThemosTsikas/PhotoPolarAlign.git &&
+cd PhotoPolarAlign
+```
+2. Enter development shell
+```sh
+nix develop ./nix
+```
+3. **Run**
+```sh
+python PPA.py
+```
+</details>
+
 
 ## Setup
 On first startup, a settings page will appear. This can be reaccessed at any time by going to `Files > Settings`.
@@ -181,6 +199,11 @@ python PPA.py
 On Linux:
 ```sh
 source .venv/bin/activate
+python PPA.py
+```
+On NixOS:
+```sh
+nix develop ./nix
 python PPA.py
 ```
 - The top part of the interface contains three buttons for uploading your images.
