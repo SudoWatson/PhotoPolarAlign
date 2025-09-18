@@ -580,7 +580,7 @@ def circle(centre, img, colour, name):
     Annotate with a circle
     '''
     from PIL import ImageFont, ImageDraw
-    font = ImageFont.load('symb24.pil')
+    font = ImageFont.load('assets/fonts/symb24.pil')
     draw = ImageDraw.Draw(img)
     cen = centre[0]
     ax1 = cen[0]
@@ -595,7 +595,7 @@ def cpcircle(centre, img, scl):
     Annotate with target circles
     '''
     from PIL import ImageFont, ImageDraw
-    font = ImageFont.load('helvR24.pil')
+    font = ImageFont.load('assets/fonts/helvR24.pil')
     draw = ImageDraw.Draw(img)
     cen = centre[0]
     ax1 = cen[0]
@@ -1400,9 +1400,9 @@ class PhotoPolarAlign(Frame):
         self.hwcs_fn = ''
         self.iwcs_fn = ''
         # the button icons
-        self.vicon = PhotoImage(file='v2_2.ppm')
-        self.hicon = PhotoImage(file='h2_2.ppm')
-        self.iicon = PhotoImage(file='i2_2.ppm')
+        self.vicon = PhotoImage(file='assets/v2_2.ppm')
+        self.hicon = PhotoImage(file='assets/h2_2.ppm')
+        self.iicon = PhotoImage(file='assets/i2_2.ppm')
         # the solved image scale
         self.havescale = False
         self.scale = None

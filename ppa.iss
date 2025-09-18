@@ -26,25 +26,25 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "C:\Users\Administrator\repos\photopolaralign\PPA.py"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Administrator\repos\photopolaralign\h.jpg"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Administrator\repos\photopolaralign\h2_2.ppm"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Administrator\repos\photopolaralign\helvR24.pbm"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Administrator\repos\photopolaralign\helvR24.pil"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Administrator\repos\photopolaralign\i.jpg"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Administrator\repos\photopolaralign\i2_2.ppm"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Administrator\repos\photopolaralign\PPA.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Administrator\repos\photopolaralign\assets\h.jpg"; DestDir: "assets\{app}"; Flags: ignoreversion
+Source: "C:\Users\Administrator\repos\photopolaralign\assets\h2_2.ppm"; DestDir: "assets\{app}"; Flags: ignoreversion
+Source: "C:\Users\Administrator\repos\photopolaralign\assets\fonts\helvR24.pbm"; DestDir: "assets\fonts\{app}"; Flags: ignoreversion
+Source: "C:\Users\Administrator\repos\photopolaralign\assets\fonts\helvR24.pil"; DestDir: "assets\fonts\{app}"; Flags: ignoreversion
+Source: "C:\Users\Administrator\repos\photopolaralign\assets\i.jpg"; DestDir: "assets\{app}"; Flags: ignoreversion
+Source: "C:\Users\Administrator\repos\photopolaralign\assets\i2_2.ppm"; DestDir: "assets\{app}"; Flags: ignoreversion
+Source: "C:\Users\Administrator\repos\photopolaralign\assets\PPA.ico"; DestDir: "assets\{app}"; Flags: ignoreversion
 Source: "C:\Users\Administrator\repos\photopolaralign\PPA.py"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Administrator\repos\photopolaralign\PPALogo.bmp"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Administrator\repos\photopolaralign\symb24.pbm"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Administrator\repos\photopolaralign\symb24.pil"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Administrator\repos\photopolaralign\v.jpg"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Administrator\repos\photopolaralign\v2_2.ppm"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Administrator\repos\photopolaralign\assets\PPALogo.bmp"; DestDir: "assets\{app}"; Flags: ignoreversion
+Source: "C:\Users\Administrator\repos\photopolaralign\assets\fonts\symb24.pbm"; DestDir: "assets\fonts\{app}"; Flags: ignoreversion
+Source: "C:\Users\Administrator\repos\photopolaralign\assets\fonts\symb24.pil"; DestDir: "assets\fonts\{app}"; Flags: ignoreversion
+Source: "C:\Users\Administrator\repos\photopolaralign\assets\v.jpg"; DestDir: "assets\{app}"; Flags: ignoreversion
+Source: "C:\Users\Administrator\repos\photopolaralign\assets\v2_2.ppm"; DestDir: "assets\{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
 Name: "{group}\PhotoPolarAlign"; Filename: "{app}\PPA.py" 
 Name: "{group}\{cm:UninstallProgram,PhotoPolarAlign}"; Filename: "{uninstallexe}"
-Name: "{commondesktop}\PhotoPolarAlign"; Filename: "{app}\PPA.py"; Tasks: desktopicon; IconFilename: "{app}\PPA.ico"
+Name: "{commondesktop}\PhotoPolarAlign"; Filename: "{app}\PPA.py"; Tasks: desktopicon; IconFilename: "{app}\assets\PPA.ico"
 
 
 [Run]
