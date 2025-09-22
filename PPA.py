@@ -6,9 +6,17 @@ Created on Sun Oct 12 22:40:05 2014
 """
 
 from __future__ import print_function
+import os
 import sys
 from urllib.request import urlopen
 from NovaClient import NovaClient
+
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    if hasattr(sys, '_MEIPASS'):  # running as bundle
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
 
 class RequestError(Exception):
@@ -386,7 +394,7 @@ def circle(centre, img, colour, name):
     Annotate with a circle
     '''
     from PIL import ImageFont, ImageDraw
-    font = ImageFont.load('assets/fonts/symb24.pil')
+    font = ImageFont.load(resource_path('assets/fonts/symb24.pil'))
     draw = ImageDraw.Draw(img)
     cen = centre[0]
     ax1 = cen[0]
@@ -401,7 +409,7 @@ def cpcircle(centre, img, scl):
     Annotate with target circles
     '''
     from PIL import ImageFont, ImageDraw
-    font = ImageFont.load('assets/fonts/helvR24.pil')
+    font = ImageFont.load(resource_path('assets/fonts/helvR24.pil'))
     draw = ImageDraw.Draw(img)
     cen = centre[0]
     ax1 = cen[0]
@@ -1206,9 +1214,9 @@ class PhotoPolarAlign(Frame):
         self.hwcs_fn = ''
         self.iwcs_fn = ''
         # the button icons
-        self.vicon = PhotoImage(file='assets/v2_2.ppm')
-        self.hicon = PhotoImage(file='assets/h2_2.ppm')
-        self.iicon = PhotoImage(file='assets/i2_2.ppm')
+        self.vicon = PhotoImage(file=resource_path('assets/v2_2.ppm'))
+        self.hicon = PhotoImage(file=resource_path('assets/h2_2.ppm'))
+        self.iicon = PhotoImage(file=resource_path('assets/i2_2.ppm'))
         # the solved image scale
         self.havescale = False
         self.scale = None
