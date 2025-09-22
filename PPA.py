@@ -45,10 +45,11 @@ def stat_bar(self, txt):
     self.wstat.config(text=self.stat_msg)
     self.wstat.update()
 
-def limg2wcs(self, filename, wcsfn, hint):
+def local_img2wcs(self, filename, wcsfn, hint):
     import os
     import time
     t_start = time.time()
+    # TODO: I seriously don't think this will ever be false unless you're in a really weird situation. Just remove this condition. And the next one.
     if (('OS'     in os.environ and os.environ['OS']    =='Windows_NT') or
         ('OSTYPE' in os.environ and os.environ['OSTYPE']=='linux') or
         (os.uname()[0]=='Linux') or
@@ -57,6 +58,7 @@ def limg2wcs(self, filename, wcsfn, hint):
         if True:
             # first rough estimate of scale
             print('___________________________________________________________')
+            # solve-field provided by Astrometry.net package # TODO: 
             cmd = 'solve-field -b ' + self.local_configfile.get()
             if self.havescale and self.restrict_scale.get()==1:
                 up_lim = self.scale*1.05
@@ -688,7 +690,7 @@ class PhotoPolarAlign(Frame):
         if solver=='nova':
             img2wcs(self, self.apikey.get(), aimg, awcs, hint)
         if solver=='local':
-            limg2wcs(self, aimg, awcs, hint)
+            local_img2wcs(self, aimg, awcs, hint)
         self.update_scale(hint)
 
     def update_display(self, cpcrd, the_scale):
