@@ -12,6 +12,7 @@ Inspired by Dave Rowe https://web.archive.org/web/20210126061304/http://www.cons
 - [Installation](#installation)
 - [Setup](#setup)
 - [Usage](#usage)
+- [Building](#building)
 
 ## Overview
 
@@ -224,3 +225,51 @@ python PPA.py
   - Solve it using the same plate solving method.
   - Click **"Show Improvement"** to see the new error.
   - Repeat this step until your error is small enough (usually under 5 minutes error is perfectly good)
+
+
+## Building
+For testing changes to the program or building the source to run on hardware that don't have installation binaries, you can easily download and run the source code.
+
+1. Make sure you have **Python 3** installed on your device
+2. Clone this **repository**
+```sh
+git clone https://github.com/ThemosTsikas/PhotoPolarAlign.git &&
+cd PhotoPolarAlign
+```
+3. Install **TKinter** if it does not come with your Python installation
+```sh
+apt install python3-tk
+```
+4. Create a **Virtual Environment**
+```sh
+python -m venv --system-site-packages .venv &&
+source .venv/bin/activate
+```
+5. Install **Required Python Packages**:
+```sh
+pip install numpy scipy pillow configparser astropy
+```
+6. **Run**
+```sh
+python PPA.py
+```
+
+Or, on NixOS:
+1. Clone this **repository**
+```sh
+git clone https://github.com/ThemosTsikas/PhotoPolarAlign.git &&
+cd PhotoPolarAlign
+```
+2. Enter development shell
+```sh
+nix develop ./nix
+```
+3. **Run**
+```sh
+python PPA.py
+```
+
+To build the application:
+1. `pip install pyinstaller`
+2. `pyinstaller --onefile --add-data "assets:assets" PPA.py`
+3. Result will be in `./dist/` folder
