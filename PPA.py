@@ -295,9 +295,7 @@ def about_f():
     '''
     import tkinter.messagebox
     tkinter.messagebox.showinfo('About',
-                          'PhotoPolarAlign v1.0.4 \n' +
-                          'Copyright Â© 2014 Themos Tsikas, ' +
-                          'Jack Richmond')
+                          'PhotoPolarAlign v1.0.5 \n')
 
 def scale_frm_wcs(fn):
     from astropy.io import fits
