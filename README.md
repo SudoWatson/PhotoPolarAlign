@@ -27,6 +27,10 @@ PhotoPolarAlign (PPA) is Python utility that can be used to Polar Align any Equa
 
 ✔️ **Works with Any Camera Setup**
 
+✔️ **Works in Both Hemispheres**
+
+✔️ **Telescope only needs to be within 25 Degrees of Either Celestial Pole**
+
 ## What it Doesn't Do
 ❌**Take Pictures with Your Camera**
 
