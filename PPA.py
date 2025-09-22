@@ -8,16 +8,28 @@ Created on Sun Oct 12 22:40:05 2014
 from __future__ import print_function
 import os
 import sys
+import platformdirs
 from urllib.request import urlopen
 from NovaClient import NovaClient
 
 
 def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
-    if hasattr(sys, '_MEIPASS'):  # running as bundle
+    """ Get absolute path to bundled resources """
+    if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
+    # Return unbundled path in dev
     return os.path.join(os.path.abspath("."), relative_path)
 
+def get_config_file_path(config_file_name: str = "PPA.ini") -> str:
+    """ Gets the best config file path for system. Will prioritize config in working dir over system config dir. """
+    path = ""
+    for loc in os.curdir, os.path.expanduser("~"), platformdirs.user_config_dir("PPA", appauthor=False, ensure_exists=True):
+        if loc is None:
+            continue
+        path = os.path.join(loc, config_file_name)
+        if os.path.exists(path):
+            return path
+    return path
 
 class RequestError(Exception):
     '''
@@ -36,7 +48,6 @@ def stat_bar(self, txt):
 def limg2wcs(self, filename, wcsfn, hint):
     import os
     import time
-    import platform
     t_start = time.time()
     if (('OS'     in os.environ and os.environ['OS']    =='Windows_NT') or
         ('OSTYPE' in os.environ and os.environ['OSTYPE']=='linux') or
@@ -223,6 +234,7 @@ def img2wcs(self, ankey, filename, wcsfn, hint):
                 # print 'Got status:', stat
                 jobs = stat.get('jobs', [])
                 if len(jobs):
+                    # Find the first elem in jobs that is not None  # TODO: Cleanup
                     for j in jobs:
                         if j is not None:
                             break
@@ -1162,7 +1174,7 @@ class PhotoPolarAlign(Frame):
         # the Settings window
         self.settings_win = None
         # the User preferences file
-        self.cfgfn = 'PPA.ini'
+        self.cfgfn = get_config_file_path()
 
         self.local_shell = StringVar()
         self.local_downscale = IntVar()
