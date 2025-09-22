@@ -273,3 +273,5 @@ To build the application:
 1. `pip install pyinstaller`
 2. `pyinstaller --onefile --add-data "assets:assets" PPA.py`
 3. Result will be in `./dist/` folder
+
+Resource for building for Windows: https://github.com/iiPythonx/pyinstaller-windows
