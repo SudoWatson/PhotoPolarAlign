@@ -35,60 +35,12 @@ PhotoPolarAlign (PPA) is Python utility that can be used to Polar Align any Equa
 ❌**Point you to a Celestial Object**
 
 ## Installation
-<details>
-<summary>Windows</summary>
+In the **Releases** tab on the right, go to the latest version and download the program for your computer type.
 
-1. Make sure you have **Python 3** installed on your device
-2. Clone this **repository**
-```sh
-git clone https://github.com/ThemosTsikas/PhotoPolarAlign.git &&
-cd PhotoPolarAlign
-```
-3. Create a **Virtual Environment**
-```sh
-python -m venv .venv &&
-.venv/Scripts/Activate.ps1
-```
-4. Install **Required Python Packages**:
-```sh
-pip install numpy scipy pillow configparser astropy
-```
-5. **Run**
-```sh
-python PPA.py
-```
-</details>
+Or [run the source](#building)
 
 <details>
-<summary>Linux</summary>
-
-1. Make sure you have **Python 3** installed on your device
-2. Clone this **repository**
-```sh
-git clone https://github.com/ThemosTsikas/PhotoPolarAlign.git &&
-cd PhotoPolarAlign
-```
-3. Install **TKinter** if it does not come with your Python installation
-```sh
-apt install python3-tk
-```
-4. Create a **Virtual Environment**
-```sh
-python -m venv --system-site-packages .venv &&
-source .venv/bin/activate
-```
-5. Install **Required Python Packages**:
-```sh
-pip install numpy scipy pillow configparser astropy
-```
-6. **Run**
-```sh
-python PPA.py
-```
-</details>
-
-<details>
-<summary>NixOS</summary>
+<summary>For NixOS</summary>
 
 1. Clone this **repository**
 ```sh
