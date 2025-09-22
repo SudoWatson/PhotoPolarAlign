@@ -1,0 +1,26 @@
+name: Build Windows executable (PyInstaller Action)
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Package Application (Windows .exe)
+        uses: JackMcKew/pyinstaller-action-windows@main
+        with:
+          path: .
+
+      - name: Upload exe to GitHub Release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: dist/windows/*.exe
+          asset_name: PPA-windows-${{ github.ref_name }}.exe
+          tag: ${{ github.ref_name }}
