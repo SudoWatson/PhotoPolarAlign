@@ -86,7 +86,7 @@ Astrometry.net provides a downloadable software for doing plate solving on Linux
 1) Download astrometry.net: `apt install astrometry.net` (MacOS use `brew`)
 The installation will create the config file `astrometry.cfg` in the `/etc` directory
 
-2) Download the index files for the size of images you will be taking from https://data.astrometry.net/ 
+2) Download the star index files for the size of images you will be taking.
 These files contain landmarks of celestial objects to determine where your photo is in the sky. The index files are specific to the FOV your images cover in the sky. Smaller FOVs will need more landmarks and thus larger file sizes. Use this website to determine what files you will want:  https://astrometrynet.readthedocs.io/en/latest/readme.html
 
 3) Move the index files to the directory: `/usr/share/astrometry`
@@ -96,19 +96,19 @@ These files contain landmarks of celestial objects to determine where your photo
 5) Open Photo Polar Align ‘Setting’ window
 
 6) Put the following settings in ‘Local Solver Configuration’:
-```
-shell:   /bin / bash --login -c “%%s”
 
-scale:  commonly 1 or 2  (do some test)
+- `shell`: `/bin/bash --login -c “%%s”`
 
-configfile:   /etc/astrometry.cfg 
+- `scale`:  Commonly 1 or 2  (do some testing if you wish)
 
-scale_units:   arcsec/pix 
+- `configfile`: `/etc/astrometry.cfg `
 
-scale_low and scale_hi:  These define the lower and upper limits of the arcsec/pix value and allow you to reduce any platesolver measurement errors (you can get arcsec/pix value for your specific photographic setup reading it in Nova solving output)
+- `scale_units`: `arcsec/pix `
 
-'extra': you can put in some parameters-usually unnecessary and rarely useful-can be given to speed up the platesolving process.
-```
+- `scale_low` and `scale_hi`:  These define the lower and upper limits of the arcsec/pix value and allow you to reduce any platesolver measurement errors (you can get arcsec/pix value for your specific photographic setup reading it in Nova solving output)
+
+- `extra`: You can apply more advanced options. Options available are documented at https://manpages.debian.org/testing/astrometry.net/solve-field.1.en.html
+
 7) Click 'Ok': the PPA.ini file will be saved in the PhotoPolarAlign directory.
 </details>
 <details>
