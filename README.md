@@ -18,6 +18,10 @@ Inspired by Dave Rowe https://web.archive.org/web/20210126061304/http://www.cons
 
 PhotoPolarAlign (PPA) is Python utility that can be used to Polar Align any Equatorial Telescope setup. It works by capturing images of the celestial pole region in two orientations, plate solving their positions, and calculating the error. Users can adjust the telescope and retest for fine alignment.
 
+
+Forked from the original https://github.com/ThemosTsikas/PhotoPolarAlign.git
+
+
 ## Features
 ✔️ **Graphical User Interface (GUI)**
 
@@ -48,7 +52,7 @@ Or [run the source](#building)
 
 1. Clone this **repository**
 ```sh
-git clone https://github.com/ThemosTsikas/PhotoPolarAlign.git &&
+git clone https://github.com/SudoWatson/PhotoPolarAlign.git &&
 cd PhotoPolarAlign
 ```
 2. Enter development shell
@@ -189,7 +193,7 @@ For testing changes to the program or building the source to run on hardware tha
 1. Make sure you have **Python 3** installed on your device
 2. Clone this **repository**
 ```sh
-git clone https://github.com/ThemosTsikas/PhotoPolarAlign.git &&
+git clone https://github.com/SudoWatson/PhotoPolarAlign.git &&
 cd PhotoPolarAlign
 ```
 3. Install **TKinter** if it does not come with your Python installation
@@ -213,7 +217,7 @@ python PPA.py
 Or, on NixOS:
 1. Clone this **repository**
 ```sh
-git clone https://github.com/ThemosTsikas/PhotoPolarAlign.git &&
+git clone https://github.com/SudoWatson/PhotoPolarAlign.git &&
 cd PhotoPolarAlign
 ```
 2. Enter development shell
