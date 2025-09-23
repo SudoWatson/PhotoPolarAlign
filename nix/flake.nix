@@ -20,6 +20,8 @@
               pyPkgs.configparser
               pyPkgs.astropy
               pyPkgs.tkinter
+              pyPkgs.platformdirs
+              pyPkgs.pyinstaller # For building, not needed for running
             ]))
           ];
         };

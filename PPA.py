@@ -8,16 +8,35 @@ Created on Sun Oct 12 22:40:05 2014
 from __future__ import print_function
 import os
 import sys
+import platformdirs
 from urllib.request import urlopen
 from NovaClient import NovaClient
 
 
 def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
-    if hasattr(sys, '_MEIPASS'):  # running as bundle
+    """ Get absolute path to bundled resources """
+    if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
+    # Return unbundled path in dev
     return os.path.join(os.path.abspath("."), relative_path)
 
+def get_config_file_path(config_file_name: str = "PPA.ini") -> str:
+    """ Gets the best config file path for system. Will prioritize config in working dir over system config dir. """
+    path = ""
+    for dir in os.curdir, os.path.expanduser("~"), platformdirs.user_config_dir("PPA", appauthor=False, ensure_exists=True):
+        if dir is None:
+            continue
+        path = os.path.join(dir, config_file_name)
+        if os.path.exists(path):
+            return path
+    return path # Return '~/.config/PPA/ppa.ini' by default. Will create if doesn't exist
+
+def get_cache_file_path(cache_file_name: str = "") -> str:
+    """ Gets the best cache file path for system. """
+    dir = platformdirs.user_cache_dir("PPA", appauthor=False, ensure_exists=True)
+    if cache_file_name == "":
+        return dir
+    return os.path.join(dir, cache_file_name)
 
 class RequestError(Exception):
     '''
@@ -33,11 +52,11 @@ def stat_bar(self, txt):
     self.wstat.config(text=self.stat_msg)
     self.wstat.update()
 
-def limg2wcs(self, filename, wcsfn, hint):
+def local_img2wcs(self, filename, wcsfn, hint):
     import os
     import time
-    import platform
     t_start = time.time()
+    # TODO: I seriously don't think this will ever be false unless you're in a really weird situation. Just remove this condition. And the next one.
     if (('OS'     in os.environ and os.environ['OS']    =='Windows_NT') or
         ('OSTYPE' in os.environ and os.environ['OSTYPE']=='linux') or
         (os.uname()[0]=='Linux') or
@@ -46,6 +65,7 @@ def limg2wcs(self, filename, wcsfn, hint):
         if True:
             # first rough estimate of scale
             print('___________________________________________________________')
+            # solve-field provided by Astrometry.net package # TODO: 
             cmd = 'solve-field -b ' + self.local_configfile.get()
             if self.havescale and self.restrict_scale.get()==1:
                 up_lim = self.scale*1.05
@@ -59,6 +79,7 @@ def limg2wcs(self, filename, wcsfn, hint):
                 cmd = cmd + (' -z %d' % self.local_downscale.get())
             cmd = cmd + ' ' + self.local_xtra.get()
             cmd = cmd + ' -O '
+            cmd = cmd + ' -D ' + os.path.dirname(wcsfn) # Output files to specified cache directory
             cmd = cmd + ' \\"%s\\"'
             template = ((self.local_shell.get() % cmd))
             # print template
@@ -223,6 +244,7 @@ def img2wcs(self, ankey, filename, wcsfn, hint):
                 # print 'Got status:', stat
                 jobs = stat.get('jobs', [])
                 if len(jobs):
+                    # Find the first elem in jobs that is not None  # TODO: Cleanup
                     for j in jobs:
                         if j is not None:
                             break
@@ -291,11 +313,21 @@ def help_f():
 
 def about_f():
     '''
-    our about window
+    Our about window
     '''
     import tkinter.messagebox
     tkinter.messagebox.showinfo('About',
                           'PhotoPolarAlign v1.0.5 \n')
+
+def clear_cache_f():
+    '''
+    Confirmation window for clearing cache
+    '''
+    import tkinter.messagebox
+    if tkinter.messagebox.askyesno('Clear Cache?',
+                                   "This will permanently delete all files in '" + get_cache_file_path() + "'. Are you sure you wish to continue?"):
+        import shutil
+        shutil.rmtree(get_cache_file_path())
 
 def scale_frm_wcs(fn):
     from astropy.io import fits
@@ -481,7 +513,6 @@ class PhotoPolarAlign(Frame):
         self.wvar4.configure(text=('%.3s...........' % self.apikey.get()))
         self.settings_win.destroy()
 
-
     def settings_open(self):
         '''
         Our Settings window
@@ -605,7 +636,7 @@ class PhotoPolarAlign(Frame):
         options['title'] = titles[hint]
         img = tkinter.filedialog.askopenfilename(**options)
         if img:
-            wcs = splitext(img)[0] + '.wcs'
+            wcs = get_cache_file_path(os.path.basename(splitext(img)[0] + '.wcs'))
             if self.happy_with(wcs, img):
                 self.update_solved_labels(hint, 'active')
             else:
@@ -676,7 +707,7 @@ class PhotoPolarAlign(Frame):
         if solver=='nova':
             img2wcs(self, self.apikey.get(), aimg, awcs, hint)
         if solver=='local':
-            limg2wcs(self, aimg, awcs, hint)
+            local_img2wcs(self, aimg, awcs, hint)
         self.update_scale(hint)
 
     def update_display(self, cpcrd, the_scale):
@@ -791,7 +822,7 @@ class PhotoPolarAlign(Frame):
         yb = max(1, bottom - margin)
         croppedi = imi.crop((xl, yb, xr, yt))
         croppedi.load()
-        crop_fn = splitext(self.iimg_fn)[0] + '_cropi.ppm'
+        crop_fn = get_cache_file_path(os.path.basename(os.path.splitext(self.himg_fn)[0] + '_cropi.ppm'))
         croppedi.save(crop_fn, 'PPM')
         self.create_imgwin(crop_fn, self.iimg_fn)
         stat_bar(self, 'Idle')
@@ -905,7 +936,7 @@ class PhotoPolarAlign(Frame):
         yb = max(1, bottom - margin)
         croppedh = imh.crop((xl, yb, xr, yt))
         croppedh.load()
-        crop_fn = splitext(self.himg_fn)[0] + '_croph.ppm'
+        crop_fn = get_cache_file_path(os.path.basename(os.path.splitext(self.himg_fn)[0] + '_croph.ppm'))
         croppedh.save(crop_fn, 'PPM')
         self.create_imgwin(crop_fn, self.himg_fn)
         stat_bar(self, 'Idle')
@@ -1008,6 +1039,8 @@ class PhotoPolarAlign(Frame):
         self.menubar.add_cascade(label='Help', menu=self.helpmenu)
         self.filemenu.add_command(label='Settings...',
                                   command=self.settings_open)
+        self.filemenu.add_command(label='Clear cache',
+                                  command=clear_cache_f)
         self.filemenu.add_command(label='Exit', command=self.quit_method)
         self.helpmenu.add_command(label='Help', command=help_f)
         self.helpmenu.add_command(label='About...', command=about_f)
@@ -1162,7 +1195,7 @@ class PhotoPolarAlign(Frame):
         # the Settings window
         self.settings_win = None
         # the User preferences file
-        self.cfgfn = 'PPA.ini'
+        self.cfgfn = get_config_file_path()
 
         self.local_shell = StringVar()
         self.local_downscale = IntVar()
@@ -1287,7 +1320,8 @@ class PhotoPolarAlign(Frame):
                 self.wlvsol.configure(state='active')
                 self.wlhsol.configure(state='active')
                 self.wlisol.configure(state='active')
-        except:
+        except Exception as e:
+            print(e)
             self.local_shell.set('')
             self.local_downscale.set(1)
             self.local_configfile.set('')

@@ -203,7 +203,7 @@ source .venv/bin/activate
 ```
 5. Install **Required Python Packages**:
 ```sh
-pip install numpy scipy pillow configparser astropy
+pip install -r requirements.txt
 ```
 6. **Run**
 ```sh

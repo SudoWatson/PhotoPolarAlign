@@ -12,6 +12,14 @@ from urllib.error import HTTPError
 if __name__ == "__main__":
     print("This is the NovaClient library and cannot be ran")
 
+# TODO: This is duplicated in both files
+# TODO: When there is a bad API key, status bar sticks with "Solving Image...""
+class RequestError(Exception):
+    '''
+    An exception that happens when talking to the plate solver
+    '''
+    pass
+
 def json2python(data):
     try:
         return json.loads(data)
