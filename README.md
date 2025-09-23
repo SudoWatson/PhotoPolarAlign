@@ -95,11 +95,11 @@ These files contain landmarks of celestial objects to determine where your photo
 
 5) Open Photo Polar Align ‘Setting’ window
 
-6) Put the following settings in ‘Local Solver Configuration’:
+6) Fill out the following settings in ‘Local Solver Configuration’:
 
 - `shell`: `/bin/bash --login -c “%s”`
 
-- `scale`:  Commonly 1 or 2  (do some testing if you wish)
+- `scale`:  Commonly 1 or 2  (do some testing if you wish, or set to 1 if you don't wish)
 
 - `configfile`: `/etc/astrometry.cfg `
 
@@ -109,7 +109,7 @@ These files contain landmarks of celestial objects to determine where your photo
 
 - `extra`: You can apply more advanced options. Options available are documented at https://manpages.debian.org/testing/astrometry.net/solve-field.1.en.html
 
-7) Click 'Ok': the PPA.ini file will be saved in the PhotoPolarAlign directory.
+7) Click 'Ok': the PPA.ini file will be saved in the config directory (usually `~/.config/PPA`).
 </details>
 <details>
 <summary>Windows</summary>
@@ -125,22 +125,24 @@ It will create  its ~/astrometry/data directory where, through a specific functi
 
 5) Put the following data in ‘Local Solver Configuration’:
 ```
-   shell:  C:/Users/<user>/AppData/Local/Astrometry/bin/bash --login -c "%%s"
+- `shell`: `C:/Users/<user>/AppData/Local/Astrometry/bin/bash --login -c "%s"`
 
-   scale:  commonly 1 or 2  (do some test)
+- `scale`:  Commonly 1 or 2  (do some testing if you wish, or set to 1 if you don't wish)
 
-   configfile:  /etc/astrometry/backend.cfg … follow as in Linux
+- `configfile`: `/etc/astrometry/backend.cfg`
 
-   scale_units:  arcsec/pix 
+- `scale_units`: `arcsec/pix`
 
-   scale_low and scale_hi: These define the lower and upper limits of the arcsec/pix value and allow you to reduce any platesolver measurement errors (you can get arcsec/pix value for your specific photographic setup reading it in Nova solving output)
+- `scale_low` and `scale_hi`: These define the lower and upper limits of the arcsec/pix value and allow you to reduce any platesolver measurement errors (you can get arcsec/pix value for your specific photographic setup reading it in Nova solving output)
 
-   extra:  put the parameter "-p" to avoid the warning: `FITSFixedWarning: The WCS transformation has more axes (2) than the image it is associated with (0) [astropy.wcs.wcs]`
+- `extra`:  `-p`
+    You can apply more advanced options. Options available are documented at https://manpages.debian.org/testing/astrometry.net/solve-field.1.en.html
+    We use the "-p" option to avoid the warning: `FITSFixedWarning: The WCS transformation has more axes (2) than the image it is associated with (0) [astropy.wcs.wcs]`
            related to output: "solve-field.c:327:plot_source_overlay Plotting command failed"
            Windows doesn't have "plotxy" function (it is Linux environment only), but the function is not necessary for us.
 ```
 7) Click 'Ok': the PPA.ini file will be saved in the PhotoPolarAlign directory.
- 
+
 </details>
 </details>
 
