@@ -97,7 +97,7 @@ These files contain landmarks of celestial objects to determine where your photo
 
 6) Put the following settings in ‘Local Solver Configuration’:
 
-- `shell`: `/bin/bash --login -c “%%s”`
+- `shell`: `/bin/bash --login -c “%s”`
 
 - `scale`:  Commonly 1 or 2  (do some testing if you wish)
 
