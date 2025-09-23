@@ -5,6 +5,7 @@ configparser==7.2.0
 numpy==2.3.3
 packaging==25.0
 pillow==11.3.0
+platformdirs==4.4.0
 pyerfa==2.0.1.5
 pyinstaller==6.16.0
 pyinstaller-hooks-contrib==2025.8
