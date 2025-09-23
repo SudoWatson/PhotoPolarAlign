@@ -23,18 +23,20 @@ def resource_path(relative_path):
 def get_config_file_path(config_file_name: str = "PPA.ini") -> str:
     """ Gets the best config file path for system. Will prioritize config in working dir over system config dir. """
     path = ""
-    for loc in os.curdir, os.path.expanduser("~"), platformdirs.user_config_dir("PPA", appauthor=False, ensure_exists=True):
-        if loc is None:
+    for dir in os.curdir, os.path.expanduser("~"), platformdirs.user_config_dir("PPA", appauthor=False, ensure_exists=True):
+        if dir is None:
             continue
-        path = os.path.join(loc, config_file_name)
+        path = os.path.join(dir, config_file_name)
         if os.path.exists(path):
             return path
-    return path
+    return path # Return '~/.config/PPA/ppa.ini' by default. Will create if doesn't exist
 
-def get_cache_file_path(cache_file_name: str) -> str:
+def get_cache_file_path(cache_file_name: str = "") -> str:
     """ Gets the best cache file path for system. """
-    loc = platformdirs.user_cache_dir("PPA", appauthor=False, ensure_exists=True)
-    return os.path.join(loc, cache_file_name)
+    dir = platformdirs.user_cache_dir("PPA", appauthor=False, ensure_exists=True)
+    if cache_file_name == "":
+        return dir
+    return os.path.join(dir, cache_file_name)
 
 class RequestError(Exception):
     '''
@@ -311,11 +313,21 @@ def help_f():
 
 def about_f():
     '''
-    our about window
+    Our about window
     '''
     import tkinter.messagebox
     tkinter.messagebox.showinfo('About',
                           'PhotoPolarAlign v1.0.5 \n')
+
+def clear_cache_f():
+    '''
+    Confirmation window for clearing cache
+    '''
+    import tkinter.messagebox
+    if tkinter.messagebox.askyesno('Clear Cache?',
+                                   "This will permanently delete all files in '" + get_cache_file_path() + "'. Are you sure you wish to continue?"):
+        import shutil
+        shutil.rmtree(get_cache_file_path())
 
 def scale_frm_wcs(fn):
     from astropy.io import fits
@@ -500,7 +512,6 @@ class PhotoPolarAlign(Frame):
         self.write_config_file()
         self.wvar4.configure(text=('%.3s...........' % self.apikey.get()))
         self.settings_win.destroy()
-
 
     def settings_open(self):
         '''
@@ -1028,6 +1039,8 @@ class PhotoPolarAlign(Frame):
         self.menubar.add_cascade(label='Help', menu=self.helpmenu)
         self.filemenu.add_command(label='Settings...',
                                   command=self.settings_open)
+        self.filemenu.add_command(label='Clear cache',
+                                  command=clear_cache_f)
         self.filemenu.add_command(label='Exit', command=self.quit_method)
         self.helpmenu.add_command(label='Help', command=help_f)
         self.helpmenu.add_command(label='About...', command=about_f)
