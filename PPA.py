@@ -317,7 +317,8 @@ def about_f():
     '''
     import tkinter.messagebox
     tkinter.messagebox.showinfo('About',
-                          'PhotoPolarAlign v1.0.5 \n')
+                          'PhotoPolarAlign v1.1.0 \n' +
+                          'Visit https://github.com/SudoWatson/PhotoPolarAlign for more information')
 
 def clear_cache_f():
     '''
