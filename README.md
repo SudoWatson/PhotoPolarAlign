@@ -124,7 +124,6 @@ It will create  its ~/astrometry/data directory where, through a specific functi
 4) Open Photo Polar Align ‘Setting’ window
 
 5) Put the following data in ‘Local Solver Configuration’:
-```
 - `shell`: `C:/Users/<user>/AppData/Local/Astrometry/bin/bash --login -c "%s"`
 
 - `scale`:  Commonly 1 or 2  (do some testing if you wish, or set to 1 if you don't wish)
@@ -140,7 +139,6 @@ It will create  its ~/astrometry/data directory where, through a specific functi
     We use the "-p" option to avoid the warning: `FITSFixedWarning: The WCS transformation has more axes (2) than the image it is associated with (0) [astropy.wcs.wcs]`
            related to output: "solve-field.c:327:plot_source_overlay Plotting command failed"
            Windows doesn't have "plotxy" function (it is Linux environment only), but the function is not necessary for us.
-```
 7) Click 'Ok': the PPA.ini file will be saved in the PhotoPolarAlign directory.
 
 </details>
