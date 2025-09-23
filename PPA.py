@@ -487,7 +487,7 @@ class PhotoPolarAlign(Frame):
         if not self.config.has_section('local'):
             self.config.add_section('local')
         self.config.set('local','shell',
-                        str(self.local_shell.get()))
+                        str(self.local_shell.get()).replace('%', '%%')) # Need to escape format characters so they get read properly
         self.config.set('local','downscale',
                         str(self.local_downscale.get()))
         self.config.set('local','configfile',
@@ -1313,7 +1313,7 @@ class PhotoPolarAlign(Frame):
             self.local_scale_hi.set(self.config.getfloat('local','scale_hi'))
             self.local_xtra.set(self.config.get('local','xtra'))
             # check solve-field cmd
-            exit_status = os.system(self.local_shell.get() % 'solve-field > /dev/null')
+            exit_status = os.system(self.local_shell.get() % 'solve-field > /dev/null') # TODO: Make this failing not delete all settings
             if exit_status != 0:
                 print("Can't use local astrometry.net solver, check PATH")
             else:
