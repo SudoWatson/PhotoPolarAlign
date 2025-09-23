@@ -31,6 +31,11 @@ def get_config_file_path(config_file_name: str = "PPA.ini") -> str:
             return path
     return path
 
+def get_cache_file_path(cache_file_name: str) -> str:
+    """ Gets the best cache file path for system. """
+    loc = platformdirs.user_cache_dir("PPA", appauthor=False, ensure_exists=True)
+    return os.path.join(loc, cache_file_name)
+
 class RequestError(Exception):
     '''
     An exception that happens when talking to the plate solver
@@ -72,6 +77,7 @@ def local_img2wcs(self, filename, wcsfn, hint):
                 cmd = cmd + (' -z %d' % self.local_downscale.get())
             cmd = cmd + ' ' + self.local_xtra.get()
             cmd = cmd + ' -O '
+            cmd = cmd + ' -D ' + os.path.dirname(wcsfn) # Output files to specified cache directory
             cmd = cmd + ' \\"%s\\"'
             template = ((self.local_shell.get() % cmd))
             # print template
@@ -619,7 +625,7 @@ class PhotoPolarAlign(Frame):
         options['title'] = titles[hint]
         img = tkinter.filedialog.askopenfilename(**options)
         if img:
-            wcs = splitext(img)[0] + '.wcs'
+            wcs = get_cache_file_path(os.path.basename(splitext(img)[0] + '.wcs'))
             if self.happy_with(wcs, img):
                 self.update_solved_labels(hint, 'active')
             else:
@@ -805,7 +811,7 @@ class PhotoPolarAlign(Frame):
         yb = max(1, bottom - margin)
         croppedi = imi.crop((xl, yb, xr, yt))
         croppedi.load()
-        crop_fn = splitext(self.iimg_fn)[0] + '_cropi.ppm'
+        crop_fn = get_cache_file_path(os.path.basename(os.path.splitext(self.himg_fn)[0] + '_cropi.ppm'))
         croppedi.save(crop_fn, 'PPM')
         self.create_imgwin(crop_fn, self.iimg_fn)
         stat_bar(self, 'Idle')
@@ -919,7 +925,7 @@ class PhotoPolarAlign(Frame):
         yb = max(1, bottom - margin)
         croppedh = imh.crop((xl, yb, xr, yt))
         croppedh.load()
-        crop_fn = splitext(self.himg_fn)[0] + '_croph.ppm'
+        crop_fn = get_cache_file_path(os.path.basename(os.path.splitext(self.himg_fn)[0] + '_croph.ppm'))
         croppedh.save(crop_fn, 'PPM')
         self.create_imgwin(crop_fn, self.himg_fn)
         stat_bar(self, 'Idle')
@@ -1301,7 +1307,8 @@ class PhotoPolarAlign(Frame):
                 self.wlvsol.configure(state='active')
                 self.wlhsol.configure(state='active')
                 self.wlisol.configure(state='active')
-        except:
+        except Exception as e:
+            print(e)
             self.local_shell.set('')
             self.local_downscale.set(1)
             self.local_configfile.set('')
