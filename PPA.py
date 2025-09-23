@@ -308,7 +308,7 @@ def help_f():
     Our help window
     '''
     import tkinter.messagebox
-    tkinter.messagebox.showinfo("Help", "Still to come...")
+    tkinter.messagebox.showinfo("Help", "Visit https://github.com/SudoWatson/PhotoPolarAlign for help.")
 
 
 def about_f():
