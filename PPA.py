@@ -41,9 +41,9 @@ class RequestError(Exception):
 
 from tkinter import Frame, Tk, Menu, Label, Entry, PhotoImage
 from tkinter import Scrollbar, Toplevel, Canvas, Radiobutton
-from tkinter import StringVar, IntVar, DoubleVar
 from tkinter import Button, LabelFrame, Checkbutton, Scale
 from tkinter import HORIZONTAL
+
 
 def help_f():
     '''
@@ -59,8 +59,9 @@ def about_f():
     '''
     import tkinter.messagebox
     tkinter.messagebox.showinfo('About',
-                          'PhotoPolarAlign v1.1.0 \n' +
-                          'Visit https://github.com/SudoWatson/PhotoPolarAlign for more information')
+                                'PhotoPolarAlign v1.1.0 \n' +
+                                'Visit https://github.com/SudoWatson/PhotoPolarAlign for more information')
+
 
 def clear_cache_f():
     '''
@@ -72,11 +73,13 @@ def clear_cache_f():
         import shutil
         shutil.rmtree(get_cache_file_path())
 
+
 def scale_frm_wcs(fn):
     from astropy.io import fits
     hdu = fits.open(fn)
     head = hdu[0].header
     return scale_frm_header(head)
+
 
 def parity_frm_header(head):
     '''
@@ -110,7 +113,7 @@ def scale_frm_header(head):
         try:
             # AstroArt's wcs files have it CDELT1 (deg/pixel)
             cdelt1 = abs(head['CDELT1'])
-            return float(cdelt1)*60.0*60.0
+            return float(cdelt1) * 60.0 * 60.0
         except KeyError:
             return 1.0
 
@@ -142,10 +145,12 @@ def wid_hei_frm_header(head):
         except KeyError:
             return 0, 0
 
+
 def decdeg2dms(dd):
-    mnt,sec = divmod(dd*3600,60)
-    deg,mnt = divmod(mnt,60)
-    return deg,mnt,sec
+    mnt, sec = divmod(dd * 3600, 60)
+    deg, mnt = divmod(mnt, 60)
+    return deg, mnt, sec
+
 
 def cross(crd, img, colour):
     '''
@@ -189,21 +194,21 @@ def cpcircle(centre, img, scl):
     ay1 = cen[1]
     number = [5, 10, 20, 40]
     for i in number:
-        rad = (i*60)/scl
+        rad = (i * 60) / scl
         draw.ellipse((ax1 - rad, ay1 - rad, ax1 + rad, ay1 + rad),
                      fill=None, outline='Green')
-        draw.text((ax1 + (rad*26)/36, ay1 + (rad*26/36)), str(i) + "'",
-                  font=font)
+        draw.text((ax1 + (rad * 26) / 36, ay1 + (rad * 26 / 36)), str(i) + "'", formatfont=font)
     draw.line((ax1 - 30, ay1) + (ax1 - 4, ay1), fill='Green', width=2)
-    draw.line((ax1 +4, ay1) + (ax1 + 30, ay1), fill='Green', width=2)
-    draw.line((ax1, ay1 - 30) + (ax1, ay1 - 4),fill='Green', width=2)
-    draw.line((ax1, ay1 + 4) + (ax1, ay1 + 30),fill='Green', width=2)
+    draw.line((ax1 + 4, ay1) + (ax1 + 30, ay1), fill='Green', width=2)
+    draw.line((ax1, ay1 - 30) + (ax1, ay1 - 4), fill='Green', width=2)
+    draw.line((ax1, ay1 + 4) + (ax1, ay1 + 30), fill='Green', width=2)
 
 
 class PhotoPolarAlign(Frame):
     '''
     Our application as a class
     '''
+
     def stat_bar(self, txt):
         '''
         Update the Status bar
@@ -211,6 +216,7 @@ class PhotoPolarAlign(Frame):
         self.stat_msg = txt
         self.wstat.config(text=self.stat_msg)
         self.wstat.update()
+
     # CLI
     def local_img2wcs(self, filename, wcsfn, hint):
         import os
@@ -225,12 +231,12 @@ class PhotoPolarAlign(Frame):
             if True:
                 # first rough estimate of scale
                 print('___________________________________________________________')
-                # solve-field provided by Astrometry.net package # TODO: 
+                # solve-field provided by Astrometry.net package
                 cmd = 'solve-field -b ' + self.local_configfile.get()
-                if self.havescale and self.restrict_scale.get()==1:
-                    up_lim = self.scale*1.05
-                    lo_lim = self.scale*0.95
-                    cmd = cmd + (' -u app -L %.2f -H %.2f ' % (lo_lim,  up_lim))
+                if self.havescale and self.restrict_scale.get() == 1:
+                    up_lim = self.scale * 1.05
+                    lo_lim = self.scale * 0.95
+                    cmd = cmd + (' -u app -L %.2f -H %.2f ' % (lo_lim, up_lim))
                 else:
                     cmd = cmd + ' -u ' + self.local_scale_units.get()
                     cmd = cmd + (' -L %.2f' % self.local_scale_low.get())
@@ -239,7 +245,7 @@ class PhotoPolarAlign(Frame):
                     cmd = cmd + (' -z %d' % self.local_downscale.get())
                 cmd = cmd + ' ' + self.local_xtra.get()
                 cmd = cmd + ' -O '
-                cmd = cmd + ' -D ' + os.path.dirname(wcsfn) # Output files to specified cache directory
+                cmd = cmd + ' -D ' + os.path.dirname(wcsfn)  # Output files to specified cache directory
                 cmd = cmd + ' \\"%s\\"'
                 template = ((self.local_shell.get() % cmd))
                 # print template
@@ -250,9 +256,8 @@ class PhotoPolarAlign(Frame):
                 print('___________________________________________________________')
         self.update_solved_labels(hint, 'active')
         self.stat_bar('Idle')
-        print('local solve time ' + str(time.time()-t_start))
+        print('local solve time ' + str(time.time() - t_start))
         print('___________________________________________________________')
-
 
     # CLI
     def img2wcs(self, ankey, filename, wcsfn, hint):
@@ -360,7 +365,7 @@ class PhotoPolarAlign(Frame):
             client.login(opt.apikey)
         except RequestError:
             self.stat_bar(("Couldn't log on to nova.astrometry.net " +
-                            '- Check the API key'))
+                           '- Check the API key'))
             return
         if opt.upload or opt.upload_url:
             if opt.wcs or opt.kmz:
@@ -492,34 +497,34 @@ class PhotoPolarAlign(Frame):
 
         nxt = Label(frm, text='shell')
         nxt.grid(row=0, column=0, pady=4, sticky='w')
-        nxt = Entry(frm, textvariable=self.local_shell,width=0)
+        nxt = Entry(frm, textvariable=self.local_shell, width=0)
         nxt.grid(row=0, column=1, pady=4, sticky='we', columnspan=2)
 
-        ifrm = Frame(frm,bd=0)
+        ifrm = Frame(frm, bd=0)
         ifrm.grid(row=1, column=0, pady=4, sticky='w', columnspan=3)
         nxt = Label(ifrm, text='downscale')
         nxt.pack(side='left')
-        nxt = Radiobutton(ifrm, variable=self.local_downscale,value='1',text='1')
+        nxt = Radiobutton(ifrm, variable=self.local_downscale, value='1', text='1')
         nxt.pack(side='left')
-        nxt = Radiobutton(ifrm, variable=self.local_downscale,value='2',text='2')
+        nxt = Radiobutton(ifrm, variable=self.local_downscale, value='2', text='2')
         nxt.pack(side='left')
-        nxt = Radiobutton(ifrm, variable=self.local_downscale,value='4',text='4')
+        nxt = Radiobutton(ifrm, variable=self.local_downscale, value='4', text='4')
         nxt.pack(side='left')
 
         nxt = Label(frm, text='configfile')
         nxt.grid(row=2, column=0, pady=4, sticky='w')
         nxt = Entry(frm, textvariable=self.local_configfile, width=0)
-        nxt.grid(row=2, column=1, pady=4,sticky='we', columnspan=2)
+        nxt.grid(row=2, column=1, pady=4, sticky='we', columnspan=2)
 
-        ifrm = Frame(frm,bd=0)
+        ifrm = Frame(frm, bd=0)
         ifrm.grid(row=3, column=0, pady=4, sticky='w', columnspan=3)
         nxt = Label(ifrm, text='scale_units')
         nxt.pack(side='left')
-        nxt = Radiobutton(ifrm, variable=self.local_scale_units,value='arcsecperpix',text='arcsec/pix')
+        nxt = Radiobutton(ifrm, variable=self.local_scale_units, value='arcsecperpix', text='arcsec/pix')
         nxt.pack(side='left')
-        nxt = Radiobutton(ifrm, variable=self.local_scale_units,value='degwidth',text='degrees width')
+        nxt = Radiobutton(ifrm, variable=self.local_scale_units, value='degwidth', text='degrees width')
         nxt.pack(side='left')
-        nxt = Radiobutton(ifrm, variable=self.local_scale_units,value='arcminwidth',text='arcminutes width')
+        nxt = Radiobutton(ifrm, variable=self.local_scale_units, value='arcminwidth', text='arcminutes width')
         nxt.pack(side='left')
 
         nxt = Label(frm, text='scale_low')
@@ -569,7 +574,7 @@ class PhotoPolarAlign(Frame):
             # check timestamps
             # DBG print os.stat(wcs).st_atime, os.stat(wcs).st_mtime, os.stat(wcs).st_ctime, 'wcs'
             # DBG print os.stat(img).st_atime, os.stat(img).st_mtime, os.stat(img).st_ctime, 'img'
-            if os.stat(wcs).st_mtime> os.stat(img).st_mtime:
+            if os.stat(wcs).st_mtime > os.stat(img).st_mtime:
                 return True
         return False
 
@@ -639,7 +644,7 @@ class PhotoPolarAlign(Frame):
         if hint == 'h' or hint == 'v':
             if self.vimg_fn == self.himg_fn:
                 self.stat_bar(('Image filenames coincide - Check the Image ' +
-                                'filenames'))
+                               'filenames'))
                 return
         if hint == 'h':
             aimg = self.himg_fn
@@ -657,12 +662,12 @@ class PhotoPolarAlign(Frame):
             open(aimg)
         except IOError:
             self.stat_bar(("couldn't open the image - Check the Image " +
-                            'filename' + aimg))
+                           'filename' + aimg))
             return
         self.stat_bar('Solving image...')
-        if solver=='nova':
+        if solver == 'nova':
             self.img2wcs(self.apikey.get(), aimg, awcs, hint)
-        if solver=='local':
+        if solver == 'local':
             self.local_img2wcs(aimg, awcs, hint)
         self.update_scale(hint)
 
@@ -681,20 +686,20 @@ class PhotoPolarAlign(Frame):
         self.wvar5.configure(text=('%.2f' % the_scale))
         self.wvar6.configure(text=str(int(x1a))+','+str(int(y1a)))
         self.wvar7.configure(text=(str(int(x2a)) +',' + str(int(y2a))))
-        err = the_scale*numpy.sqrt((x1a-x2a)**2 + (y1a-y2a)**2)/60.0
+        err = the_scale * numpy.sqrt((x1a - x2a)**2 + (y1a - y2a)**2) / 60.0
         self.wvar8.configure(text=('%.2f' % err))
         if x2a > x1a:
             inst = 'Right '
         else:
             inst = 'Left '
-        ddeg = abs(x2a - x1a)*the_scale/3600.0
+        ddeg = abs(x2a - x1a) * the_scale / 3600.0
         inst = inst + ('%02d:%02d:%02d' % decdeg2dms(ddeg))
         self.wvar9.configure(text=inst)
         if y2a > y1a:
             inst = inst + ' Down '
         else:
             inst = inst + ' Up '
-        ddeg = abs(y2a - y1a)*the_scale/3600.0
+        ddeg = abs(y2a - y1a) * the_scale / 3600.0
         inst = inst + ('%02d:%02d:%02d' % decdeg2dms(ddeg))
         self.wvar9.configure(text=inst)
 
@@ -712,7 +717,7 @@ class PhotoPolarAlign(Frame):
         from os.path import splitext
         if self.iimg_fn == self.himg_fn:
             self.stat_bar(('Image filenames coincide - Check the Image ' +
-                            'filenames'))
+                           'filenames'))
             return
         try:
             imi = Image.open(self.iimg_fn)
@@ -771,7 +776,7 @@ class PhotoPolarAlign(Frame):
             right = int(max(cpcrdi[0][0], ori[0][0], whi[0][0], axis[0]))
             bottom = int(min(cpcrdi[0][1], ori[0][1], whi[0][1], axis[1]))
             top = int(max(cpcrdi[0][1], ori[0][1], whi[0][1], axis[1]))
-        margin = int(2500/scalei)
+        margin = int(2500 / scalei)
         xl = max(1, left - margin)
         xr = min(widthi, right + margin)
         yt = min(heighti, top + margin)
@@ -799,7 +804,7 @@ class PhotoPolarAlign(Frame):
         #
         if self.vimg_fn == self.himg_fn:
             self.stat_bar(('Image filenames coincide - Check the Image ' +
-                            'filenames'))
+                           'filenames'))
             return
         try:
             imh = Image.open(self.himg_fn)
@@ -845,7 +850,7 @@ class PhotoPolarAlign(Frame):
         if wid_hei_frm_header(headh) != wid_hei_frm_header(headv):
             self.stat_bar('Incompatible image dimensions...')
             return
-        if parity_frm_header(headh) == 0 or parity_frm_header(headv) == 0 :
+        if parity_frm_header(headh) == 0 or parity_frm_header(headv) == 0:
             self.stat_bar('Wrong parity...')
             return
 
@@ -885,7 +890,7 @@ class PhotoPolarAlign(Frame):
             right = int(max(cpcrdh[0][0], orh[0][0], whh[0][0], axis[0]))
             bottom = int(min(cpcrdh[0][1], orh[0][1], whh[0][1], axis[1]))
             top = int(max(cpcrdh[0][1], orh[0][1], whh[0][1], axis[1]))
-        margin = int(2500/scaleh)
+        margin = int(2500 / scaleh)
         xl = max(1, left - margin)
         xr = min(widthh, right + margin)
         yt = min(heighth, top + margin)
@@ -907,7 +912,7 @@ class PhotoPolarAlign(Frame):
         win = Toplevel()
         wwid = min(800, img.width())
         whei = min(800, img.height())
-        win.geometry(('%dx%d' % (wwid+28, whei+28)))
+        win.geometry(('%dx%d' % (wwid + 28, whei + 28)))
         win.title(basename(title))
         frame = Frame(win, bd=0)
         frame.pack()
@@ -964,19 +969,19 @@ class PhotoPolarAlign(Frame):
             if s == 'Solver-AstrometryNetSolver':
                 for o in config.options(s):
                     if o == 'configfile':
-                        self.local_configfile.set(config.get(s,o))
+                        self.local_configfile.set(config.get(s, o))
                     elif o == 'shell':
-                        self.local_shell.set(config.get(s,o))
+                        self.local_shell.set(config.get(s, o))
                     elif o == 'downscale':
-                        self.local_downscale.set(config.getint(s,o))
+                        self.local_downscale.set(config.getint(s, o))
                     elif o == 'scale_units':
-                        self.local_scale_units.set(config.get(s,o))
+                        self.local_scale_units.set(config.get(s, o))
                     elif o == 'scale_low':
-                        self.local_scale_low.set(config.getfloat(s,o,))
+                        self.local_scale_low.set(config.getfloat(s, o,))
                     elif o == 'scale_max':
-                        self.local_scale_hi.set(config.getfloat(s,o))
+                        self.local_scale_hi.set(config.getfloat(s, o))
                     elif o == 'xtra':
-                        self.local_xtra.set(config.get(s,o,))
+                        self.local_xtra.set(config.get(s, o,))
 
         self.stat_bar('Idle')
         return
@@ -1005,26 +1010,26 @@ class PhotoPolarAlign(Frame):
         self.wfrop = LabelFrame(master, text='Operations')
         self.wfrop.pack(side='top', fill='x')
         #
-        nxt = Button(self.wfrop, image=self.vicon, command=lambda : self.get_file('v'))
+        nxt = Button(self.wfrop, image=self.vicon, command=lambda: self.get_file('v'))
         nxt.grid(row=0, column=0, sticky='ew', padx=10, pady=4, rowspan=3)
         self.wvfn = nxt
-        nxt = Button(self.wfrop, text='Nova', command=lambda : self.solve('v','nova'))
+        nxt = Button(self.wfrop, text='Nova', command=lambda: self.solve('v', 'nova'))
         nxt.grid(row=0, column=1, sticky='ew', padx=10, pady=4)
         self.wvsol = nxt
-        nxt = Button(self.wfrop, text='Local', command=lambda : self.solve('v','local'))
+        nxt = Button(self.wfrop, text='Local', command=lambda: self.solve('v', 'local'))
         nxt.grid(row=1, column=1, sticky='ew', padx=10, pady=4)
         self.wlvsol = nxt
         nxt = Label(self.wfrop, text='Solved', state='disabled')
         nxt.grid(row=2, column=1, sticky='ew', padx=10, pady=4)
         self.wvok = nxt
         #
-        nxt = Button(self.wfrop, image=self.hicon, command=lambda : self.get_file('h'))
+        nxt = Button(self.wfrop, image=self.hicon, command=lambda: self.get_file('h'))
         nxt.grid(row=3, column=0, sticky='ew', padx=10, pady=4, rowspan=3)
         self.whfn = nxt
-        nxt = Button(self.wfrop, text='Nova', command=lambda : self.solve('h','nova'))
+        nxt = Button(self.wfrop, text='Nova', command=lambda: self.solve('h', 'nova'))
         nxt.grid(row=3, column=1, sticky='ew', padx=10, pady=4)
         self.whsol = nxt
-        nxt = Button(self.wfrop, text='Local', command=lambda : self.solve('h','local'))
+        nxt = Button(self.wfrop, text='Local', command=lambda: self.solve('h', 'local'))
         nxt.grid(row=4, column=1, sticky='ew', padx=10, pady=4)
         self.wlhsol = nxt
         nxt = Label(self.wfrop, text='Solved', state='disabled')
@@ -1036,13 +1041,13 @@ class PhotoPolarAlign(Frame):
         nxt.grid(row=6, column=0, sticky='ew', padx=10, pady=4, columnspan=2)
         self.wann = nxt
         #
-        nxt = Button(self.wfrop, image=self.iicon, command=lambda : self.get_file('i'))
+        nxt = Button(self.wfrop, image=self.iicon, command=lambda: self.get_file('i'))
         nxt.grid(row=3, column=3, sticky='ew', padx=10, pady=4, rowspan=3)
         self.wifn = nxt
-        nxt = Button(self.wfrop, text='Nova', command=lambda : self.solve('i','nova'))
+        nxt = Button(self.wfrop, text='Nova', command=lambda: self.solve('i', 'nova'))
         nxt.grid(row=3, column=4, sticky='ew', padx=10, pady=4)
         self.wisol = nxt
-        nxt = Button(self.wfrop, text='Local', command=lambda : self.solve('i','local'))
+        nxt = Button(self.wfrop, text='Local', command=lambda: self.solve('i', 'local'))
         nxt.grid(row=4, column=4, sticky='ew', padx=10, pady=4)
         self.wlisol = nxt
         nxt = Label(self.wfrop, text='Solved', state='disabled')
@@ -1059,7 +1064,7 @@ class PhotoPolarAlign(Frame):
                          text='Info')
         nxt.pack(side='top', fill='x')
         self.wfrvar = nxt
-        nxt = Label(self.wfrvar, text = 'Given')
+        nxt = Label(self.wfrvar, text='Given')
         nxt.grid(row=0, column=1, columnspan=2, sticky='w')
         nxt = Label(self.wfrvar, anchor='w', text='Vertical:')
         nxt.grid(row=1, column=0, sticky='w')
@@ -1082,10 +1087,10 @@ class PhotoPolarAlign(Frame):
         nxt.grid(row=4, column=1, sticky='e')
         self.wvar4 = nxt
 
-        nxt = Label(self.wfrvar, text = '                ') # Spacing between columns
+        nxt = Label(self.wfrvar, text='                ')  # Spacing between columns
         nxt.grid(row=0, column=2, columnspan=1, sticky='w')
 
-        nxt = Label(self.wfrvar, text = 'Computed')
+        nxt = Label(self.wfrvar, text='Computed')
         nxt.grid(row=0, column=4, columnspan=2, sticky='w')
         nxt = Label(self.wfrvar, text='Scale (arcsec/pixel):')
         nxt.grid(row=1, column=3, sticky='w')
@@ -1198,7 +1203,6 @@ class PhotoPolarAlign(Frame):
 
         self.myparent = None
 
-
         self.stat_msg = 'Idle'
         Frame.__init__(self, master)
         self.create_widgets(master)
@@ -1207,15 +1211,15 @@ class PhotoPolarAlign(Frame):
         self.wlhsol.configure(state='disabled')
         self.wlisol.configure(state='disabled')
         try:
-            self.local_shell.set(self.config.get('local','shell'))
-            self.local_downscale.set(self.config.getint('local','downscale'))
-            self.local_configfile.set(self.config.get('local','configfile'))
-            self.local_scale_units.set(self.config.get('local','scale_units'))
-            self.local_scale_low.set(self.config.getfloat('local','scale_low'))
-            self.local_scale_hi.set(self.config.getfloat('local','scale_hi'))
-            self.local_xtra.set(self.config.get('local','xtra'))
+            self.local_shell.set(self.config.get('local', 'shell'))
+            self.local_downscale.set(self.config.getint('local', 'downscale'))
+            self.local_configfile.set(self.config.get('local', 'configfile'))
+            self.local_scale_units.set(self.config.get('local', 'scale_units'))
+            self.local_scale_low.set(self.config.getfloat('local', 'scale_low'))
+            self.local_scale_hi.set(self.config.getfloat('local', 'scale_hi'))
+            self.local_xtra.set(self.config.get('local', 'xtra'))
             # check solve-field cmd
-            exit_status = os.system(self.local_shell.get() % 'solve-field > /dev/null') # TODO: Make this failing not delete all settings
+            exit_status = os.system(self.local_shell.get() % 'solve-field > /dev/null')  # TODO: Make this failing not delete all settings
             if exit_status != 0:
                 print("Can't use local astrometry.net solver, check PATH")
             else:
@@ -1231,10 +1235,11 @@ class PhotoPolarAlign(Frame):
             self.local_scale_low.set(0)
             self.local_scale_hi.set(0)
             self.local_xtra.set('')
-        if not self.apikey.get() or self.apikey.get()=='':
+        if not self.apikey.get() or self.apikey.get() == '':
             self.settings_open()
         self.pack()
         #
+
 
 ROOT = Tk()
 ROOT.geometry('440x470+300+300')
