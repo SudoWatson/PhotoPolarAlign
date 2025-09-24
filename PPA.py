@@ -11,6 +11,7 @@ import sys
 import platformdirs
 from urllib.request import urlopen
 from NovaClient import NovaClient
+import PPA_lib
 
 
 def resource_path(relative_path):
@@ -20,16 +21,6 @@ def resource_path(relative_path):
     # Return unbundled path in dev
     return os.path.join(os.path.abspath("."), relative_path)
 
-def get_config_file_path(config_file_name: str = "PPA.ini") -> str:
-    """ Gets the best config file path for system. Will prioritize config in working dir over system config dir. """
-    path = ""
-    for dir in os.curdir, os.path.expanduser("~"), platformdirs.user_config_dir("PPA", appauthor=False, ensure_exists=True):
-        if dir is None:
-            continue
-        path = os.path.join(dir, config_file_name)
-        if os.path.exists(path):
-            return path
-    return path # Return '~/.config/PPA/ppa.ini' by default. Will create if doesn't exist
 
 def get_cache_file_path(cache_file_name: str = "") -> str:
     """ Gets the best cache file path for system. """
@@ -213,50 +204,6 @@ class PhotoPolarAlign(Frame):
     '''
     Our application as a class
     '''
-    def write_config_file(self):
-        '''
-        Update the user preferences file
-        '''
-        # the API key
-        if not self.config.has_section('nova'):
-            self.config.add_section('nova')
-        self.config.set('nova', 'apikey', str(self.apikey.get()))
-        # the image directory
-        if not self.config.has_section('file'):
-            self.config.add_section('file')
-        self.config.set('file', 'imgdir', str(self.imgdir))
-        # the geometry
-        if not self.config.has_section('appearance'):
-            self.config.add_section('appearance')
-        self.config.set('appearance', 'geometry',
-                        str(self.myparent.winfo_geometry()))
-        # the operating options
-        if not self.config.has_section('operations'):
-            self.config.add_section('operations')
-        self.config.set('operations','restrict scale',
-                        str(self.restrict_scale.get()))
-        # the local solve options
-        if not self.config.has_section('local'):
-            self.config.add_section('local')
-        self.config.set('local','shell',
-                        str(self.local_shell.get()).replace('%', '%%')) # Need to escape format characters so they get read properly
-        self.config.set('local','downscale',
-                        str(self.local_downscale.get()))
-        self.config.set('local','configfile',
-                        str(self.local_configfile.get()))
-        self.config.set('local','scale_units',
-                        str(self.local_scale_units.get()))
-        self.config.set('local','scale_low',
-                        str(self.local_scale_low.get()))
-        self.config.set('local','scale_hi',
-                        str(self.local_scale_hi.get()))
-        self.config.set('local','xtra',
-                        str(self.local_xtra.get()))
-
-        with open(self.cfgfn, 'w') as cfgfile:
-            self.config.write(cfgfile)
-        cfgfile.close()
-
     def stat_bar(self, txt):
         '''
         Update the Status bar
@@ -264,7 +211,7 @@ class PhotoPolarAlign(Frame):
         self.stat_msg = txt
         self.wstat.config(text=self.stat_msg)
         self.wstat.update()
-
+    # CLI
     def local_img2wcs(self, filename, wcsfn, hint):
         import os
         import time
@@ -307,6 +254,7 @@ class PhotoPolarAlign(Frame):
         print('___________________________________________________________')
 
 
+    # CLI
     def img2wcs(self, ankey, filename, wcsfn, hint):
         '''
         Plate solves one image
@@ -514,7 +462,7 @@ class PhotoPolarAlign(Frame):
         '''
         User asked to close the Settings
         '''
-        self.write_config_file()
+        PPA_lib.write_config_file(self)
         self.wvar4.configure(text=('%.3s...........' % self.apikey.get()))
         self.settings_win.destroy()
 
@@ -606,9 +554,10 @@ class PhotoPolarAlign(Frame):
         '''
         User wants to quit
         '''
-        self.write_config_file()
+        PPA_lib.write_config_file(self)
         self.myparent.destroy()
 
+    # CLI
     def happy_with(self, wcs, img):
         '''
         check that .wcs (wcs) is compatible with .jpg (img)
@@ -666,8 +615,9 @@ class PhotoPolarAlign(Frame):
                 self.wvar3.configure(text=basename(img))
                 self.wifn.configure(bg='green', activebackground='green')
 
+    # CLI
     def update_scale(self, hint):
-        try: 
+        try:
             if hint == 'v':
                 self.scale = scale_frm_wcs(self.vwcs_fn)
             elif hint == 'h':
@@ -681,6 +631,7 @@ class PhotoPolarAlign(Frame):
             self.wvar5.configure(text='--.--')
             return
 
+    # CLI
     def solve(self, hint, solver):
         '''
         Solve an image
@@ -1175,68 +1126,14 @@ class PhotoPolarAlign(Frame):
         nxt.pack(anchor='w')
         self.wstat = nxt
 
+    # Some CLI
     def __init__(self, master=None):
         import configparser
         import numpy
         import os
-        # a F8Ib 2.0 mag star, Alpha Ursa Minoris
-        self.polaris = numpy.array([[037.954561, 89.264109]], numpy.float64)
-        #
-        # a M1III 6.4 mag star, Lambda Ursa Minoris
-        self.lam = numpy.array([[259.235229, 89.037706]], numpy.float64)
-        #
-        # a F0III 5.4 mag star, Sigma Octans
-        self.sigma = numpy.array([[317.195164, -88.956499]], numpy.float64)
-        #
-        # a K3IIICN 5.3 mag star, Chi Octans
-        self.chi = numpy.array([[283.696388, -87.605843]], numpy.float64)
-        #
-        # a M1III 7.2 mag star, HD90104
-        self.red = numpy.array([[130.522862, -89.460536]], numpy.float64)
-        #
-        # the pixel coords of the RA axis, if solution exists
-        self.axis = None
-        self.havea = False
-        # the Settings window
-        self.settings_win = None
-        # the User preferences file
-        self.cfgfn = get_config_file_path()
 
-        self.local_shell = StringVar()
-        self.local_downscale = IntVar()
-        self.local_configfile = StringVar()
-        self.local_scale_units = StringVar()
-        self.local_scale_low = DoubleVar()
-        self.local_scale_hi = DoubleVar()
-        self.local_xtra = StringVar()
-
-
-        # Read the User preferences
-        self.config = configparser.ConfigParser()
-        self.config.read(self.cfgfn)
-        # ...the key
-        try:
-            k_ini = self.config.get('nova', 'apikey')
-        except :
-            k_ini = None
-        self.apikey = StringVar(value=k_ini)
-        # ...the Image directory
-        try:
-            self.imgdir = self.config.get('file', 'imgdir')
-        except :
-            self.imgdir = None
-        # ...geometry
-        try:
-            self.usergeo = self.config.get('appearance', 'geometry')
-        except :
-            self.usergeo = None
+        PPA_lib.init_ppa(self)
         master.geometry(self.usergeo)
-        # do we want to help solves by restricting the scale once we have an estimate
-        self.restrict_scale = IntVar(value=0)
-        try:
-            self.restrict_scale.set(self.config.getint('operations','restrict scale'))
-        except:
-            self.restrict_scale.set(0)
 
         # the filenames of images
         self.vimg_fn = ''
