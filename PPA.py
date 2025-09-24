@@ -8,7 +8,6 @@ Created on Sun Oct 12 22:40:05 2014
 from __future__ import print_function
 import os
 import sys
-import platformdirs
 import PPA_lib
 from tkinter import Frame, Tk, Menu, Label, Entry, PhotoImage
 from tkinter import Scrollbar, Toplevel, Canvas, Radiobutton
@@ -22,14 +21,6 @@ def resource_path(relative_path):
         return os.path.join(sys._MEIPASS, relative_path)
     # Return unbundled path in dev
     return os.path.join(os.path.abspath("."), relative_path)
-
-
-def get_cache_file_path(cache_file_name: str = "") -> str:
-    """ Gets the best cache file path for system. """
-    dir = platformdirs.user_cache_dir("PPA", appauthor=False, ensure_exists=True)
-    if cache_file_name == "":
-        return dir
-    return os.path.join(dir, cache_file_name)
 
 
 def help_f():
@@ -56,9 +47,9 @@ def clear_cache_f():
     '''
     import tkinter.messagebox
     if tkinter.messagebox.askyesno('Clear Cache?',
-                                   "This will permanently delete all files in '" + get_cache_file_path() + "'. Are you sure you wish to continue?"):
+                                   "This will permanently delete all files in '" + PPA_lib.get_cache_file_path() + "'. Are you sure you wish to continue?"):
         import shutil
-        shutil.rmtree(get_cache_file_path())
+        shutil.rmtree(PPA_lib.get_cache_file_path())
 
 
 def wid_hei_frm_header(head):
@@ -267,7 +258,7 @@ class PhotoPolarAlign(Frame):
         options['title'] = titles[hint]
         img = tkinter.filedialog.askopenfilename(**options)
         if img:
-            wcs = get_cache_file_path(os.path.basename(splitext(img)[0] + '.wcs'))
+            wcs = PPA_lib.get_cache_file_path(os.path.basename(splitext(img)[0] + '.wcs'))
             if PPA_lib.happy_with(wcs, img):
                 self.update_solved_labels(hint, 'active')
             else:
@@ -356,7 +347,6 @@ class PhotoPolarAlign(Frame):
         from astropy.io import fits
         from astropy import wcs
         import numpy
-        from os.path import splitext
         if self.iimg_fn == self.himg_fn:
             self.stat_bar(('Image filenames coincide - Check the Image ' +
                            'filenames'))
@@ -389,10 +379,10 @@ class PhotoPolarAlign(Frame):
         cpcrdi = wcsi.wcs_world2pix(cpskycrd, 1)
         scalei = PPA_lib.scale_frm_header(headi)
         widthi, heighti = wid_hei_frm_header(headi)
-        if wid_hei_frm_header(headi) != wid_hei_frm_header(headh) :
+        if wid_hei_frm_header(headi) != wid_hei_frm_header(headh):
             self.stat_bar('Incompatible image dimensions...')
             return
-        if PPA_lib.parity_frm_header(headi) == 0 :
+        if PPA_lib.parity_frm_header(headi) == 0:
             self.stat_bar('Wrong parity...')
             return
         self.update_display(cpcrdi, scalei)
@@ -425,7 +415,7 @@ class PhotoPolarAlign(Frame):
         yb = max(1, bottom - margin)
         croppedi = imi.crop((xl, yb, xr, yt))
         croppedi.load()
-        crop_fn = get_cache_file_path(os.path.basename(os.path.splitext(self.himg_fn)[0] + '_cropi.ppm'))
+        crop_fn = PPA_lib.get_cache_file_path(os.path.basename(os.path.splitext(self.himg_fn)[0] + '_cropi.ppm'))
         croppedi.save(crop_fn, 'PPM')
         self.create_imgwin(crop_fn, self.iimg_fn)
         self.stat_bar('Idle')
@@ -538,7 +528,7 @@ class PhotoPolarAlign(Frame):
         yb = max(1, bottom - margin)
         croppedh = imh.crop((xl, yb, xr, yt))
         croppedh.load()
-        crop_fn = get_cache_file_path(os.path.basename(os.path.splitext(self.himg_fn)[0] + '_croph.ppm'))
+        crop_fn = PPA_lib.get_cache_file_path(os.path.basename(os.path.splitext(self.himg_fn)[0] + '_croph.ppm'))
         croppedh.save(crop_fn, 'PPM')
         self.create_imgwin(crop_fn, self.himg_fn)
         self.stat_bar('Idle')
@@ -822,8 +812,11 @@ class PhotoPolarAlign(Frame):
 
         self.wfr2 = None
         self.wfrvar = None
+        # Verticle image filename label
         self.wvar1 = None
+        # Horizontal image filename label
         self.wvar2 = None
+        # Improvement image filename label
         self.wvar3 = None
         self.wvar4 = None
         self.wfrcomp = None

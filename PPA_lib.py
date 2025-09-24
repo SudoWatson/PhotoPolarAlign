@@ -92,6 +92,14 @@ def get_config_file_path(config_file_name: str = "PPA.ini") -> str:
     return path  # Return '~/.config/PPA/ppa.ini' (or whatever system preferred) by default. Will create if doesn't exist
 
 
+def get_cache_file_path(cache_file_name: str = "") -> str:
+    """ Gets the best cache file path for system. """
+    dir = platformdirs.user_cache_dir("PPA", appauthor=False, ensure_exists=True)
+    if cache_file_name == "":
+        return dir
+    return os.path.join(dir, cache_file_name)
+
+
 def write_config_file(ppa):
     '''
     Update the user preferences file
