@@ -13,6 +13,73 @@ class RequestError(Exception):
     pass
 
 
+def scale_frm_wcs(fn):
+    from astropy.io import fits
+    hdu = fits.open(fn)
+    head = hdu[0].header
+    return scale_frm_header(head)
+
+
+def parity_frm_header(head):
+    '''
+    look in the plate-solution header for the parity information
+    '''
+    try:
+        # nova's wcs files have the parity in the comments
+        comments = head['COMMENT']
+        size = (len(comments))
+        for i in range(0, size):
+            if comments[i][0:6] == 'parity':
+                tkns = comments[i].split(' ')
+                return int(tkns[1])
+    except KeyError:
+        return 1
+
+
+def scale_frm_header(head):
+    '''
+    look in the plate-solution header for the scale information
+    '''
+    try:
+        # nova's wcs files have the scale in the comments
+        comments = head['COMMENT']
+        size = (len(comments))
+        for i in range(0, size):
+            if comments[i][0:5] == 'scale':
+                tkns = comments[i].split(' ')
+                return float(tkns[1])
+    except KeyError:
+        try:
+            # AstroArt's wcs files have it CDELT1 (deg/pixel)
+            cdelt1 = abs(head['CDELT1'])
+            return float(cdelt1) * 60.0 * 60.0
+        except KeyError:
+            return 1.0
+
+
+def dec_frm_header(head):
+    '''
+    look in header for width and height of image
+   '''
+    # nova's and AstroArt's wcs files have CRVAL2
+    dec = head['CRVAL2']
+    return dec
+
+
+def happy_with(wcs, img):
+    '''
+    check that .wcs (wcs) is compatible with .jpg (img)
+    '''
+    if os.path.exists(wcs):
+        # DBG print wcs, 'exists'
+        # check timestamps
+        # DBG print os.stat(wcs).st_atime, os.stat(wcs).st_mtime, os.stat(wcs).st_ctime, 'wcs'
+        # DBG print os.stat(img).st_atime, os.stat(img).st_mtime, os.stat(img).st_ctime, 'img'
+        if os.stat(wcs).st_mtime > os.stat(img).st_mtime:
+            return True
+    return False
+
+
 def get_config_file_path(config_file_name: str = "PPA.ini") -> str:
     """ Gets the best config file path for system. Will prioritize config in working dir over system config dir. """
     path = ""
@@ -69,6 +136,48 @@ def write_config_file(ppa):
         ppa.config.write(cfgfile)
     cfgfile.close()
 
+
+def update_scale(ppa, hint):
+    try:
+        if hint == 'v':
+            ppa.scale = scale_frm_wcs(ppa.vwcs_fn)
+        elif hint == 'h':
+            ppa.scale = scale_frm_wcs(ppa.hwcs_fn)
+        elif hint == 'i':
+            ppa.scale = scale_frm_wcs(ppa.iwcs_fn)
+        ppa.havescale = True
+    except:
+        ppa.havescale = False
+        return
+
+
+def solve(ppa, hint, solver):
+    '''
+    Solve an image
+    '''
+    if hint == 'h' or hint == 'v':
+        if ppa.vimg_fn == ppa.himg_fn:
+            # Throw exception
+            return
+    if hint == 'h':
+        aimg = ppa.himg_fn
+        awcs = ppa.hwcs_fn
+    elif hint == 'v':
+        aimg = ppa.vimg_fn
+        awcs = ppa.vwcs_fn
+    elif hint == 'i':
+        aimg = ppa.iimg_fn
+        awcs = ppa.iwcs_fn
+    else:
+        raise Exception('Invalid hint passed:', hint)
+
+    open(aimg)  # Throw exception IOError if unable to open images
+
+    if solver == 'nova':
+        img2wcs(ppa, ppa.apikey.get(), aimg, awcs, hint)
+    if solver == 'local':
+        local_img2wcs(ppa, aimg, awcs, hint)
+    update_scale(ppa, hint)
 
 def init_ppa(ppa):
     import configparser

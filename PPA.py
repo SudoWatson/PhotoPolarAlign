@@ -61,59 +61,6 @@ def clear_cache_f():
         shutil.rmtree(get_cache_file_path())
 
 
-def scale_frm_wcs(fn):
-    from astropy.io import fits
-    hdu = fits.open(fn)
-    head = hdu[0].header
-    return scale_frm_header(head)
-
-
-def parity_frm_header(head):
-    '''
-    look in the plate-solution header for the parity information
-    '''
-    try:
-        # nova's wcs files have the parity in the comments
-        comments = head['COMMENT']
-        size = (len(comments))
-        for i in range(0, size):
-            if comments[i][0:6] == 'parity':
-                tkns = comments[i].split(' ')
-                return int(tkns[1])
-    except KeyError:
-        return 1
-
-
-def scale_frm_header(head):
-    '''
-    look in the plate-solution header for the scale information
-    '''
-    try:
-        # nova's wcs files have the scale in the comments
-        comments = head['COMMENT']
-        size = (len(comments))
-        for i in range(0, size):
-            if comments[i][0:5] == 'scale':
-                tkns = comments[i].split(' ')
-                return float(tkns[1])
-    except KeyError:
-        try:
-            # AstroArt's wcs files have it CDELT1 (deg/pixel)
-            cdelt1 = abs(head['CDELT1'])
-            return float(cdelt1) * 60.0 * 60.0
-        except KeyError:
-            return 1.0
-
-
-def dec_frm_header(head):
-    '''
-    look in header for width and height of image
-   '''
-    # nova's and AstroArt's wcs files have CRVAL2
-    dec = head['CRVAL2']
-    return dec
-
-
 def wid_hei_frm_header(head):
     '''
     look in header for width and height of image
@@ -303,22 +250,6 @@ class PhotoPolarAlign(Frame):
         PPA_lib.write_config_file(self)
         self.myparent.destroy()
 
-    # CLI
-    def happy_with(self, wcs, img):
-        '''
-        check that .wcs (wcs) is compatible with .jpg (img)
-        '''
-        import os
-        from os.path import exists
-        if exists(wcs):
-            # DBG print wcs, 'exists'
-            # check timestamps
-            # DBG print os.stat(wcs).st_atime, os.stat(wcs).st_mtime, os.stat(wcs).st_ctime, 'wcs'
-            # DBG print os.stat(img).st_atime, os.stat(img).st_mtime, os.stat(img).st_ctime, 'img'
-            if os.stat(wcs).st_mtime > os.stat(img).st_mtime:
-                return True
-        return False
-
     def get_file(self, hint):
         '''
         User wants to select an image file
@@ -337,7 +268,7 @@ class PhotoPolarAlign(Frame):
         img = tkinter.filedialog.askopenfilename(**options)
         if img:
             wcs = get_cache_file_path(os.path.basename(splitext(img)[0] + '.wcs'))
-            if self.happy_with(wcs, img):
+            if PPA_lib.happy_with(wcs, img):
                 self.update_solved_labels(hint, 'active')
             else:
                 self.update_solved_labels(hint, 'disabled')
@@ -361,56 +292,26 @@ class PhotoPolarAlign(Frame):
                 self.wvar3.configure(text=basename(img))
                 self.wifn.configure(bg='green', activebackground='green')
 
-    # CLI
     def update_scale(self, hint):
-        try:
-            if hint == 'v':
-                self.scale = scale_frm_wcs(self.vwcs_fn)
-            elif hint == 'h':
-                self.scale = scale_frm_wcs(self.hwcs_fn)
-            elif hint == 'i':
-                self.scale = scale_frm_wcs(self.iwcs_fn)
-            self.havescale = True
-            self.wvar5.configure(text=('%.2f' % self.scale))
-        except:
-            self.havescale = False
-            self.wvar5.configure(text='--.--')
-            return
+        PPA_lib.update_scale(self, hint)
 
-    # CLI
+        if self.havescale:
+            self.wvar5.configure(text=('%.2f' % self.scale))
+        else:
+            self.wvar5.configure(text='--.--')
+
     def solve(self, hint, solver):
         '''
         Solve an image
         '''
-        if hint == 'h' or hint == 'v':
-            if self.vimg_fn == self.himg_fn:
-                self.stat_bar(('Image filenames coincide - Check the Image ' +
-                               'filenames'))
-                return
-        if hint == 'h':
-            aimg = self.himg_fn
-            awcs = self.hwcs_fn
-        elif hint == 'v':
-            aimg = self.vimg_fn
-            awcs = self.vwcs_fn
-        elif hint == 'i':
-            aimg = self.iimg_fn
-            awcs = self.iwcs_fn
-        else:
-            raise Exception('Invalid hint passed:', hint)
-
-        try:
-            open(aimg)
-        except IOError:
-            self.stat_bar(("couldn't open the image - Check the Image " +
-                           'filename' + aimg))
-            return
         self.stat_bar('Solving image...')
-        if solver == 'nova':
-            PPA_lib.img2wcs(self, self.apikey.get(), aimg, awcs, hint)
-        if solver == 'local':
-            PPA_lib.local_img2wcs(self, aimg, awcs, hint)
-        self.update_scale(hint)
+        if hint != 'i' and self.vimg_fn == self.himg_fn:
+            self.stat_bar(('Image filenames coincide - Check the Image filenames'))
+            return
+        try:
+            PPA_lib.solve(self, hint, solver)
+        except IOError:
+            self.stat_bar(("couldn't open the image - Check the Image filename"))
 
     def update_display(self, cpcrd, the_scale):
         '''
@@ -486,12 +387,12 @@ class PhotoPolarAlign(Frame):
         cpskycrd = numpy.array([[cpj2000.ra.deg, cpj2000.dec.deg]],
                                numpy.float64)
         cpcrdi = wcsi.wcs_world2pix(cpskycrd, 1)
-        scalei = scale_frm_header(headi)
+        scalei = PPA_lib.scale_frm_header(headi)
         widthi, heighti = wid_hei_frm_header(headi)
         if wid_hei_frm_header(headi) != wid_hei_frm_header(headh) :
             self.stat_bar('Incompatible image dimensions...')
             return
-        if parity_frm_header(headi) == 0 :
+        if PPA_lib.parity_frm_header(headi) == 0 :
             self.stat_bar('Wrong parity...')
             return
         self.update_display(cpcrdi, scalei)
@@ -541,8 +442,7 @@ class PhotoPolarAlign(Frame):
         from astropy.io import fits
         from astropy import wcs
         import numpy
-        from os.path import splitext
-        #
+
         if self.vimg_fn == self.himg_fn:
             self.stat_bar(('Image filenames coincide - Check the Image ' +
                            'filenames'))
@@ -560,8 +460,8 @@ class PhotoPolarAlign(Frame):
         headh = hdulisth[0].header
         wcsv = wcs.WCS(headv)
         wcsh = wcs.WCS(headh)
-        decv = dec_frm_header(headv)
-        dech = dec_frm_header(headh)
+        decv = PPA_lib.dec_frm_header(headv)
+        dech = PPA_lib.dec_frm_header(headh)
         if decv > 65 and dech > 65:
             self.hemi = 'N'
         elif decv < -65 and dech < -65:
@@ -586,12 +486,12 @@ class PhotoPolarAlign(Frame):
             print('Northern Celestial Pole', dech)
         else:
             print('Southern Celestial Pole', dech)
-        scaleh = scale_frm_header(headh)
+        scaleh = PPA_lib.scale_frm_header(headh)
         widthh, heighth = wid_hei_frm_header(headh)
         if wid_hei_frm_header(headh) != wid_hei_frm_header(headv):
             self.stat_bar('Incompatible image dimensions...')
             return
-        if parity_frm_header(headh) == 0 or parity_frm_header(headv) == 0:
+        if PPA_lib.parity_frm_header(headh) == 0 or PPA_lib.parity_frm_header(headv) == 0:
             self.stat_bar('Wrong parity...')
             return
 
@@ -874,10 +774,6 @@ class PhotoPolarAlign(Frame):
 
     # Some CLI
     def __init__(self, master=None):
-        import configparser
-        import numpy
-        import os
-
         PPA_lib.init_ppa(self)
         master.geometry(self.usergeo)
 
@@ -979,7 +875,6 @@ class PhotoPolarAlign(Frame):
         if not self.apikey.get() or self.apikey.get() == '':
             self.settings_open()
         self.pack()
-        #
 
 
 ROOT = Tk()
