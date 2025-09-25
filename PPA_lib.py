@@ -213,11 +213,11 @@ def solve(ppa, hint, solver):
 
     if solver == 'nova':
         img2wcs(ppa, ppa.apikey.get(), aimg, awcs, hint)
-        ppa.update_solved_labels(hint, 'active')
-        ppa.stat_bar('Idle')
     if solver == 'local':
         local_img2wcs(ppa, aimg, awcs, hint)
+    ppa.update_solved_labels(hint, 'active')
     update_scale(ppa, hint)
+    ppa.stat_bar('Idle')
 
 
 def find_ra_axis_pix_coords(v_fits, h_fits):
@@ -402,10 +402,7 @@ def local_img2wcs(ppa, filename, wcsfn, hint):
             cmd = (template % filename)
             print(cmd)
             os.system(cmd)
-            ppa.update_scale(hint)
             print('___________________________________________________________')
-    ppa.update_solved_labels(hint, 'active')
-    ppa.stat_bar('Idle')
     print('local solve time ' + str(time.time() - t_start))
     print('___________________________________________________________')
 
