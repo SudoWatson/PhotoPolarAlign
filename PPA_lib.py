@@ -218,27 +218,18 @@ def solve(ppa, hint, solver):
     update_scale(ppa, hint)
 
 
-def find_ra_axis_pix_coords(v_wcs_filename, h_wcs_filename):
+def find_ra_axis_pix_coords(v_fits, h_fits):
     '''
     Find RA axis based on 2 images rotated about axis
     '''
     import scipy.optimize
-    from astropy.io import fits
     from astropy import wcs
     import numpy
 
-    try:
-        # Load the FITS hdulist using astropy.io.fits
-        hdulist_v = fits.open(v_wcs_filename)
-        hdulist_h = fits.open(h_wcs_filename)
-    except IOError as e:
-        print("IOError: " + e)
-        return
-
     # Parse the WCS keywords in the primary HDU
-    header_v = hdulist_v[0].header
-    header_h = hdulist_h[0].header
-    wcsv = wcs.WCS(header_v)
+    header_v = v_fits.header
+    header_h = h_fits.header
+    wcsv = wcs.WCS(header_v)  # TODO: This is the second FITSFixedWarning
     wcsh = wcs.WCS(header_h)
 
     width_h, height_h = width_height_from_header(header_h)
@@ -314,22 +305,8 @@ def find_error(v_wcs_filename, h_wcs_filename):
     # error = scaleh * numpy.sqrt((axis_x - cp_x)**2 + (axis_y - cp_y)**2) / 60.0
 
     scaleh = scale_from_header(header_h)
-    error = [abs(cp_x - axis_x) * scaleh/3600, abs(cp_y - axis_y) * scaleh/3600 ]
-    print("ERR: " + str(error))
-    if cp_x > axis_x:
-        inst = 'Right '
-    else:
-        inst = 'Left '
-    decdeg = abs(cp_x - axis_x) * scaleh / 3600.0
-    inst = inst + ('%02d:%02d:%02d' % decdeg2dms(decdeg))
-
-    if cp_y > axis_y:
-        inst = inst + ' Down '
-    else:
-        inst = inst + ' Up '
-    decdeg = abs(cp_y - axis_y) * scaleh / 3600.0
-    inst = inst + ('%02d:%02d:%02d' % decdeg2dms(decdeg))
-    return inst
+    error = [abs(cp_x - axis_x) * scaleh / 3600, abs(cp_y - axis_y) * scaleh / 3600]
+    return error
 
 
 def init_ppa(ppa):
