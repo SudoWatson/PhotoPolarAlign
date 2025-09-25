@@ -52,31 +52,6 @@ def clear_cache_f():
         shutil.rmtree(PPA_lib.get_cache_file_path())
 
 
-def wid_hei_frm_header(head):
-    '''
-    look in header for width and height of image
-   '''
-    try:
-        # nova's wcs files have IMAGEW / IMAGEH
-        width = head['IMAGEW']
-        height = head['IMAGEH']
-        return width, height
-    except KeyError:
-        try:
-            # AstroArt's fits files have NAXIS1 / NAXIS2
-            width = head['NAXIS1']
-            height = head['NAXIS2']
-            return width, height
-        except KeyError:
-            return 0, 0
-
-
-def decdeg2dms(dd):
-    mnt, sec = divmod(dd * 3600, 60)
-    deg, mnt = divmod(mnt, 60)
-    return deg, mnt, sec
-
-
 def cross(crd, img, colour):
     '''
     Annotate with a cross for the RA axis
@@ -326,14 +301,14 @@ class PhotoPolarAlign(Frame):
         else:
             inst = 'Left '
         ddeg = abs(x2a - x1a) * the_scale / 3600.0
-        inst = inst + ('%02d:%02d:%02d' % decdeg2dms(ddeg))
+        inst = inst + ('%02d:%02d:%02d' % PPA_lib.decdeg2dms(ddeg))
         self.wvar9.configure(text=inst)
         if y2a > y1a:
             inst = inst + ' Down '
         else:
             inst = inst + ' Up '
         ddeg = abs(y2a - y1a) * the_scale / 3600.0
-        inst = inst + ('%02d:%02d:%02d' % decdeg2dms(ddeg))
+        inst = inst + ('%02d:%02d:%02d' % PPA_lib.decdeg2dms(ddeg))
         self.wvar9.configure(text=inst)
 
     def annotate_imp(self):
@@ -377,12 +352,12 @@ class PhotoPolarAlign(Frame):
         cpskycrd = numpy.array([[cpj2000.ra.deg, cpj2000.dec.deg]],
                                numpy.float64)
         cpcrdi = wcsi.wcs_world2pix(cpskycrd, 1)
-        scalei = PPA_lib.scale_frm_header(headi)
-        widthi, heighti = wid_hei_frm_header(headi)
-        if wid_hei_frm_header(headi) != wid_hei_frm_header(headh):
+        scalei = PPA_lib.scale_from_header(headi)
+        widthi, heighti = PPA_lib.width_height_from_header(headi)
+        if PPA_lib.width_height_from_header(headi) != PPA_lib.width_height_from_header(headh):
             self.stat_bar('Incompatible image dimensions...')
             return
-        if PPA_lib.parity_frm_header(headi) == 0:
+        if PPA_lib.parity_from_header(headi) == 0:
             self.stat_bar('Wrong parity...')
             return
         self.update_display(cpcrdi, scalei)
@@ -476,12 +451,12 @@ class PhotoPolarAlign(Frame):
             print('Northern Celestial Pole', dech)
         else:
             print('Southern Celestial Pole', dech)
-        scaleh = PPA_lib.scale_frm_header(headh)
-        widthh, heighth = wid_hei_frm_header(headh)
-        if wid_hei_frm_header(headh) != wid_hei_frm_header(headv):
+        scaleh = PPA_lib.scale_from_header(headh)
+        widthh, heighth = PPA_lib.width_height_from_header(headh)
+        if PPA_lib.width_height_from_header(headh) != PPA_lib.width_height_from_header(headv):
             self.stat_bar('Incompatible image dimensions...')
             return
-        if PPA_lib.parity_frm_header(headh) == 0 or PPA_lib.parity_frm_header(headv) == 0:
+        if PPA_lib.parity_from_header(headh) == 0 or PPA_lib.parity_from_header(headv) == 0:
             self.stat_bar('Wrong parity...')
             return
 

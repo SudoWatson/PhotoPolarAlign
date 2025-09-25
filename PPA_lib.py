@@ -13,14 +13,20 @@ class RequestError(Exception):
     pass
 
 
+def decdeg2dms(dd):
+    mnt, sec = divmod(dd * 3600, 60)
+    deg, mnt = divmod(mnt, 60)
+    return deg, mnt, sec
+
+
 def scale_frm_wcs(fn):
     from astropy.io import fits
     hdu = fits.open(fn)
     head = hdu[0].header
-    return scale_frm_header(head)
+    return scale_from_header(head)
 
 
-def parity_frm_header(head):
+def parity_from_header(head):
     '''
     look in the plate-solution header for the parity information
     '''
@@ -36,7 +42,7 @@ def parity_frm_header(head):
         return 1
 
 
-def scale_frm_header(head):
+def scale_from_header(head):
     '''
     look in the plate-solution header for the scale information
     '''
@@ -55,6 +61,25 @@ def scale_frm_header(head):
             return float(cdelt1) * 60.0 * 60.0
         except KeyError:
             return 1.0
+
+
+def width_height_from_header(head):
+    '''
+    look in header for width and height of image
+   '''
+    try:
+        # nova's wcs files have IMAGEW / IMAGEH
+        width = head['IMAGEW']
+        height = head['IMAGEH']
+        return width, height
+    except KeyError:
+        try:
+            # AstroArt's fits files have NAXIS1 / NAXIS2
+            width = head['NAXIS1']
+            height = head['NAXIS2']
+            return width, height
+        except KeyError:
+            return 0, 0
 
 
 def dec_frm_header(head):
@@ -98,6 +123,11 @@ def get_cache_file_path(cache_file_name: str = "") -> str:
     if cache_file_name == "":
         return dir
     return os.path.join(dir, cache_file_name)
+
+
+def get_wcs_file_path(image_file_name: str, cache_dir_override: str = None):
+    cache_dir_override = cache_dir_override or get_cache_file_path()
+    return os.path.join(cache_dir_override, os.path.basename(os.path.splitext(image_file_name)[0] + '.wcs'))
 
 
 def write_config_file(ppa):
@@ -187,6 +217,92 @@ def solve(ppa, hint, solver):
         local_img2wcs(ppa, aimg, awcs, hint)
     update_scale(ppa, hint)
 
+
+def find_error(v_wcs_filename, h_wcs_filename):
+    '''
+    Find RA axis and Annotate the pair of horiz/vertical images
+    '''
+    from astropy.time import Time
+    import scipy.optimize
+    from astropy.coordinates import SkyCoord
+    from astropy.coordinates import FK5
+    from astropy.io import fits
+    from astropy import wcs
+    import numpy
+
+    try:
+        # Load the FITS hdulist using astropy.io.fits
+        hdulist_v = fits.open(v_wcs_filename)
+        hdulist_h = fits.open(h_wcs_filename)
+    except IOError as e:
+        print("IOError: " + e)
+        return
+
+    # Parse the WCS keywords in the primary HDU
+    header_v = hdulist_v[0].header
+    header_h = hdulist_h[0].header
+    wcsv = wcs.WCS(header_v)
+    wcsh = wcs.WCS(header_h)
+    decv = dec_frm_header(header_v)
+    dech = dec_frm_header(header_h)
+    now = Time.now()
+    if decv > 65 and dech > 65:
+        cp = SkyCoord(ra=0, dec=90, frame='fk5', unit='deg', equinox=now)
+    elif decv < -65 and dech < -65:
+        cp = SkyCoord(ra=0, dec=-90, frame='fk5', unit='deg', equinox=now)
+    else:
+        raise Exception("Nowhere near Celestial Pole. Must be <25 degrees")
+
+    # CP now, in J2000 coordinates, precess
+    cpj2000 = cp.transform_to(FK5(equinox='J2000'))
+    # sky coordinates
+    cp_sky_coord = numpy.array([[cpj2000.ra.deg, cpj2000.dec.deg]],
+                               numpy.float64)
+    # pixel coordinates
+    cp_pixcoord_rel_h = wcsh.wcs_world2pix(cp_sky_coord, 1)
+    scaleh = scale_from_header(header_h)
+    width_h, height_h = width_height_from_header(header_h)
+    if (width_h, height_h) != width_height_from_header(header_v):
+        raise Exception("Incompatible image dimensions")
+        return
+    if parity_from_header(header_h) == 0 or parity_from_header(header_v) == 0:
+        raise Exception("Wrong parity in images")  # I honestly don't know what this means right now
+        return
+
+    def displacement(coords):
+        '''
+        The difference in pixel coordinates from the horiz-vert images
+        '''
+        pixcrd1 = numpy.array([coords], numpy.float64)
+        skycrd = wcsv.wcs_pix2world(pixcrd1, 1)
+        pixcrd2 = wcsh.wcs_world2pix(skycrd, 1)
+        return pixcrd2 - pixcrd1
+    axis = scipy.optimize.broyden1(displacement, [width_h / 2, height_h / 2])
+    # ppa.axis = axis
+    # axis = ppa.axis
+    axis_x = axis[0]  # Pixel coords
+    axis_y = axis[1]
+    cp_x = cp_pixcoord_rel_h[0][0]
+    cp_y = cp_pixcoord_rel_h[0][1]
+    # ppa.scale = scaleh
+    # ppa.havescale = True
+    # error = scaleh * numpy.sqrt((axis_x - cp_x)**2 + (axis_y - cp_y)**2) / 60.0
+    if cp_x > axis_x:
+        inst = 'Right '
+    else:
+        inst = 'Left '
+    decdeg = abs(cp_x - axis_x) * scaleh / 3600.0
+    inst = inst + ('%02d:%02d:%02d' % decdeg2dms(decdeg))
+
+    if cp_y > axis_y:
+        inst = inst + ' Down '
+    else:
+        inst = inst + ' Up '
+    decdeg = abs(cp_y - axis_y) * scaleh / 3600.0
+    inst = inst + ('%02d:%02d:%02d' % decdeg2dms(decdeg))
+    return inst
+
+
 def init_ppa(ppa):
     import configparser
     import numpy
@@ -253,10 +369,10 @@ def local_img2wcs(ppa, filename, wcsfn, hint):
     import time
     t_start = time.time()
     # TODO: I seriously don't think this will ever be false unless you're in a really weird situation. Just remove this condition. And the next one.
-    if (('OS'     in os.environ and os.environ['OS']    =='Windows_NT') or
-        ('OSTYPE' in os.environ and os.environ['OSTYPE']=='linux') or
-        (os.uname()[0]=='Linux') or
-        ('OSTYPE' in os.environ and os.environ['OSTYPE']=='darwin')): 
+    if (('OS' in os.environ and os.environ['OS'] == 'Windows_NT') or
+        ('OSTYPE' in os.environ and os.environ['OSTYPE'] == 'linux') or
+        (os.uname()[0] == 'Linux') or
+            ('OSTYPE' in os.environ and os.environ['OSTYPE'] == 'darwin')):
         # Cygwin local or Linux local
         if True:
             # first rough estimate of scale
@@ -395,7 +511,7 @@ def img2wcs(ppa, ankey, filename, wcsfn, hint):
         client.login(opt.apikey)
     except RequestError:
         ppa.stat_bar(("Couldn't log on to nova.astrometry.net " +
-                       '- Check the API key'))
+                      '- Check the API key'))
         return
     if opt.upload or opt.upload_url:
         if opt.wcs or opt.kmz:
@@ -475,7 +591,7 @@ def img2wcs(ppa, ankey, filename, wcsfn, hint):
                 print('Wrote to', fne)
                 ppa.update_solved_labels(hint, 'active')
                 ppa.stat_bar('Idle')
-                print('nova solve time ' + str(time.time()-t_start))
+                print('nova solve time ' + str(time.time() - t_start))
                 print('___________________________________________________________')
         opt.job_id = None
         opt.sub_id = None
