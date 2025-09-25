@@ -47,8 +47,23 @@ if not os.path.exists(vWcsPath):
     if not os.path.exists(vImgPath):
         raise IOError(f"Image file '{vImgPath}' not found.")
 
+
 # Have the wcs files, just get the error
-print(PPA_lib.find_error(vWcsPath, hWcsPath))
+error = PPA_lib.find_error(vWcsPath, hWcsPath)
+if error[0] > 0:
+    inst = 'Right '
+else:
+    inst = 'Left '
+decdeg = abs(error[0])
+inst = inst + ('%02d:%02d:%02d' % PPA_lib.decdeg2dms(decdeg))
+
+if error[1] > 0:
+    inst = inst + ' Up '
+else:
+    inst = inst + ' Down '
+decdeg = abs(error[1])
+inst = inst + ('%02d:%02d:%02d' % PPA_lib.decdeg2dms(decdeg))
+print(inst)
 
 exit(1)
 iImgPath = args.improved
