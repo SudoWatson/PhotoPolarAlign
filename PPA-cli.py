@@ -40,12 +40,14 @@ hWcsPath = PPA_lib.get_wcs_file_path(hImgPath, cache_dir)
 if not os.path.exists(hWcsPath):
     if not os.path.exists(hImgPath):
         raise IOError(f"Image file '{hImgPath}' not found.")
+    PPA_lib.nova_img2wcs("ieijubwmyzvncdkk", hImgPath, hWcsPath)
 
 vImgPath = args.vertical
 vWcsPath = PPA_lib.get_wcs_file_path(vImgPath, cache_dir)
 if not os.path.exists(vWcsPath):
     if not os.path.exists(vImgPath):
         raise IOError(f"Image file '{vImgPath}' not found.")
+    PPA_lib.nova_img2wcs("ieijubwmyzvncdkk", vImgPath, vWcsPath)
 
 
 # Have the wcs files, just get the error
