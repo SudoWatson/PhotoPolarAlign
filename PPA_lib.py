@@ -218,14 +218,11 @@ def solve(ppa, hint, solver):
     update_scale(ppa, hint)
 
 
-def find_error(v_wcs_filename, h_wcs_filename):
+def find_ra_axis_pix_coords(v_wcs_filename, h_wcs_filename):
     '''
-    Find RA axis and Annotate the pair of horiz/vertical images
+    Find RA axis based on 2 images rotated about axis
     '''
-    from astropy.time import Time
     import scipy.optimize
-    from astropy.coordinates import SkyCoord
-    from astropy.coordinates import FK5
     from astropy.io import fits
     from astropy import wcs
     import numpy
@@ -243,6 +240,54 @@ def find_error(v_wcs_filename, h_wcs_filename):
     header_h = hdulist_h[0].header
     wcsv = wcs.WCS(header_v)
     wcsh = wcs.WCS(header_h)
+
+    width_h, height_h = width_height_from_header(header_h)
+    if (width_h, height_h) != width_height_from_header(header_v):
+        raise Exception("Incompatible image dimensions")
+        return
+    if parity_from_header(header_h) == 0 or parity_from_header(header_v) == 0:
+        print("Parity h: " + str(parity_from_header(header_h)))
+        print("Parity v: " + str(parity_from_header(header_v)))
+        raise Exception("Wrong parity in images")  # I honestly don't know what this means right now
+        return
+
+    def displacement(coords):  # Is the point in the sky at this pixel coordinate in the same pixel coordinate in the other image? Return difference
+        '''
+        The difference in pixel coordinates from the horiz-vert images
+        '''
+        pixcrd1 = numpy.array([coords], numpy.float64)
+        skycrd = wcsv.wcs_pix2world(pixcrd1, 1)
+        pixcrd2 = wcsh.wcs_world2pix(skycrd, 1)
+        return pixcrd2 - pixcrd1
+    # Finding the point in both images that represent the same point in the sky.
+    ra_axis_pix_coords = scipy.optimize.broyden1(displacement, [width_h / 2, height_h / 2])  # Start with initial guess of middle of the image, and keep testing until we get closer and closer to the actual point that is the same in both.
+    # ra_axis_sky_coords = wcsv.wcs_pix2world(numpy.array([ra_axis_pix_coords], numpy.float64), 1)
+
+    return ra_axis_pix_coords
+
+
+def find_error(v_wcs_filename, h_wcs_filename):
+    '''
+    Find error in RA axis
+    '''
+    from astropy.time import Time
+    from astropy.coordinates import SkyCoord
+    from astropy.coordinates import FK5
+    from astropy.io import fits
+    from astropy import wcs
+    import numpy
+
+    try:
+        # Load the FITS hdulist using astropy.io.fits
+        hdulist_v = fits.open(v_wcs_filename)
+        hdulist_h = fits.open(h_wcs_filename)
+    except IOError as e:
+        print("IOError: " + e)
+        return
+
+    # Parse the WCS keywords in the primary HDU
+    header_v = hdulist_v[0].header
+    header_h = hdulist_h[0].header
     decv = dec_frm_header(header_v)
     dech = dec_frm_header(header_h)
     now = Time.now()
@@ -252,41 +297,25 @@ def find_error(v_wcs_filename, h_wcs_filename):
         cp = SkyCoord(ra=0, dec=-90, frame='fk5', unit='deg', equinox=now)
     else:
         raise Exception("Nowhere near Celestial Pole. Must be <25 degrees")
-
     # CP now, in J2000 coordinates, precess
     cpj2000 = cp.transform_to(FK5(equinox='J2000'))
-    # sky coordinates
-    cp_sky_coord = numpy.array([[cpj2000.ra.deg, cpj2000.dec.deg]],
-                               numpy.float64)
-    # pixel coordinates
-    cp_pixcoord_rel_h = wcsh.wcs_world2pix(cp_sky_coord, 1)
-    scaleh = scale_from_header(header_h)
-    width_h, height_h = width_height_from_header(header_h)
-    if (width_h, height_h) != width_height_from_header(header_v):
-        raise Exception("Incompatible image dimensions")
-        return
-    if parity_from_header(header_h) == 0 or parity_from_header(header_v) == 0:
-        raise Exception("Wrong parity in images")  # I honestly don't know what this means right now
-        return
-
-    def displacement(coords):
-        '''
-        The difference in pixel coordinates from the horiz-vert images
-        '''
-        pixcrd1 = numpy.array([coords], numpy.float64)
-        skycrd = wcsv.wcs_pix2world(pixcrd1, 1)
-        pixcrd2 = wcsh.wcs_world2pix(skycrd, 1)
-        return pixcrd2 - pixcrd1
-    axis = scipy.optimize.broyden1(displacement, [width_h / 2, height_h / 2])
-    # ppa.axis = axis
-    # axis = ppa.axis
-    axis_x = axis[0]  # Pixel coords
-    axis_y = axis[1]
+    wcsh = wcs.WCS(header_h)
+    cp_sky_coord = numpy.array([[cpj2000.ra.deg, cpj2000.dec.deg]], numpy.float64)
+    cp_pixcoord_rel_h = wcsh.wcs_world2pix(cp_sky_coord, 1)  # Pixel coordinates relative to h
     cp_x = cp_pixcoord_rel_h[0][0]
     cp_y = cp_pixcoord_rel_h[0][1]
+
+    axis = find_ra_axis_pix_coords(v_wcs_filename, h_wcs_filename)
+    axis_x = axis[0]  # Pixel coords
+    axis_y = axis[1]
+
     # ppa.scale = scaleh
     # ppa.havescale = True
     # error = scaleh * numpy.sqrt((axis_x - cp_x)**2 + (axis_y - cp_y)**2) / 60.0
+
+    scaleh = scale_from_header(header_h)
+    error = [abs(cp_x - axis_x) * scaleh/3600, abs(cp_y - axis_y) * scaleh/3600 ]
+    print("ERR: " + str(error))
     if cp_x > axis_x:
         inst = 'Right '
     else:
