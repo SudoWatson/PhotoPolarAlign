@@ -81,7 +81,7 @@ If you have internet access when you are imaging, you can use <https://nova.astr
 <details>
 <summary>Local Plate Solving</summary>
 
-Plate solving in local mode runs much faster than Nova (online) and does not require any internet connection.
+Plate solving in local mode runs much faster than Nova (online) and does not require any internet connection. There are several local plate solvers you can use, currently the documentation is written for just Astrometry.net on Linux/MaxOS/WSL, and All Sky Plate Solver for Windows.
 
 <details>
 <summary>Linux/MacOS</summary>
@@ -107,7 +107,7 @@ These files contain landmarks of celestial objects to determine where your photo
 
 - `configfile`: `/etc/astrometry.cfg `
 
-- `scale_units`: `arcsec/pix `
+- `scale_units`: `arcsec/pix`
 
 - `scale_low` and `scale_hi`:  These define the lower and upper limits of the arcsec/pix value and allow you to reduce any platesolver measurement errors (you can get arcsec/pix value for your specific photographic setup reading it in Nova solving output)
 
@@ -150,41 +150,25 @@ It will create  its ~/astrometry/data directory where, through a specific functi
 
 ## Usage
 - First, roughly align your telescope with the Celestial Pole region visible in your cameras view from 2 angles, roughly 90 degrees apart.
-- Take 2 images: 1 horizontally, and 1 roughly 90 degrees clockwise. Get them onto your computer with PPA installed.
-- Run PPA with Python:
-
-On Windows:
-```sh
-.venv/Scripts/Activate.ps1
-python PPA.py
-```
-On Linux:
-```sh
-source .venv/bin/activate
-python PPA.py
-```
-On NixOS:
-```sh
-nix develop ./nix
-python PPA.py
-```
+- Take 2 images: The first vertically, and the second roughly 90 degrees clockwise horizontally. Do not move your telescope's RA/DEC. Get the images onto your computer with PPA installed.
+- Open PolarPhotoAlign
 - The top part of the interface contains three buttons for uploading your images.
-- The **two buttons on the left** are used to input the two initial calibration images you just took.
+- The **two camera buttons on the left** are used to input the two initial calibration images you just took (vertical camera for the vertical image, horizontal for horizontal).
   - "Solved!" in red means the image has yet to be solved.
-- Use the **"nova"** or **"local"** button next to each to run the respective plate solving method.
+- Use the **"nova"** or **"local"** button next to each to run the respective plate solving method (they are grayed out if that mode is not configured to run).
   - You can watch the terminal to view the status of the solve request. You cannot do anything in the UI until this request finishes.
   - Do not go to your submission in <https://nova.astrometry.net> to attempt to view it's status, as that will close the connection with the program. If you want to view the status of your submission, you can go to the API link that PPA puts into the terminal.
   - "Solved!" in green means the image has been solved.
 - Once the two calibration images are solved:
-  - Click **"Find Celestial Pole"** to compute and display the alignment error in `HH:MM:SS`.
+  - Click **"Find Celestial Pole"** to compute and display the alignment error in `DD:MM:SS`.
   - An image will display showing where you are pointed as compared to the actual Celestial Pole.
-  - The error in dd:mm:ss will display for each axis.
-- Manually adjust your telescope to improve your error.
+  - The error in `DD:MM:SS` will display for each axis.
+- Manually adjust your telescope's ALT/AZ to improve your error.
 - You can check your new alignment:
   - Take a single new image and load it using the **rightmost button**.
   - Solve it using the same plate solving method.
   - Click **"Show Improvement"** to see the new error.
-  - Repeat this step until your error is small enough (usually under 5 minutes error is perfectly good)
+  - Repeat this step until your error is small enough
 
 
 ## Building
