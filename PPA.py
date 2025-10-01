@@ -122,7 +122,7 @@ class PhotoPolarAlign(Frame):
         User asked to close the Settings
         '''
         PPA_lib.write_config_file(self)
-        self.wvar4.configure(text=('%.3s...........' % self.apikey.get()))
+        self.wvar4.configure(text=('%.3s...........' % self.config.apikey.get()))
         self.settings_win.destroy()
 
     def settings_open(self):
@@ -139,11 +139,11 @@ class PhotoPolarAlign(Frame):
         frm.pack(side='top', ipadx=20, padx=20, fill='x')
         nxt = Label(frm, text='API Key')
         nxt.grid(row=0, column=0, pady=4, sticky='w')
-        nxt = Entry(frm, textvariable=self.apikey)
+        nxt = Entry(frm, textvariable=self.config.apikey)
         nxt.grid(row=0, column=1, pady=4)
         nxt = Label(frm, text='Restrict scale')
         nxt.grid(row=1, column=0, pady=4, sticky='w')
-        nxt = Checkbutton(frm, var=self.restrict_scale)
+        nxt = Checkbutton(frm, var=self.config.restrict_scale)
         nxt.grid(row=1, column=1, pady=4)
 
         frm = LabelFrame(win, borderwidth=2, relief='ridge', text='Local solver Configuration')
@@ -151,56 +151,56 @@ class PhotoPolarAlign(Frame):
 
         nxt = Label(frm, text='shell')
         nxt.grid(row=0, column=0, pady=4, sticky='w')
-        nxt = Entry(frm, textvariable=self.local_shell, width=0)
+        nxt = Entry(frm, textvariable=self.config.local_shell, width=0)
         nxt.grid(row=0, column=1, pady=4, sticky='we', columnspan=2)
 
         ifrm = Frame(frm, bd=0)
         ifrm.grid(row=1, column=0, pady=4, sticky='w', columnspan=3)
         nxt = Label(ifrm, text='downscale')
         nxt.pack(side='left')
-        nxt = Radiobutton(ifrm, variable=self.local_downscale, value='1', text='1')
+        nxt = Radiobutton(ifrm, variable=self.config.local_downscale, value='1', text='1')
         nxt.pack(side='left')
-        nxt = Radiobutton(ifrm, variable=self.local_downscale, value='2', text='2')
+        nxt = Radiobutton(ifrm, variable=self.config.local_downscale, value='2', text='2')
         nxt.pack(side='left')
-        nxt = Radiobutton(ifrm, variable=self.local_downscale, value='4', text='4')
+        nxt = Radiobutton(ifrm, variable=self.config.local_downscale, value='4', text='4')
         nxt.pack(side='left')
 
         nxt = Label(frm, text='configfile')
         nxt.grid(row=2, column=0, pady=4, sticky='w')
-        nxt = Entry(frm, textvariable=self.local_configfile, width=0)
+        nxt = Entry(frm, textvariable=self.config.local_configfile, width=0)
         nxt.grid(row=2, column=1, pady=4, sticky='we', columnspan=2)
 
         ifrm = Frame(frm, bd=0)
         ifrm.grid(row=3, column=0, pady=4, sticky='w', columnspan=3)
         nxt = Label(ifrm, text='scale_units')
         nxt.pack(side='left')
-        nxt = Radiobutton(ifrm, variable=self.local_scale_units, value='arcsecperpix', text='arcsec/pix')
+        nxt = Radiobutton(ifrm, variable=self.config.local_scale_units, value='arcsecperpix', text='arcsec/pix')
         nxt.pack(side='left')
-        nxt = Radiobutton(ifrm, variable=self.local_scale_units, value='degwidth', text='degrees width')
+        nxt = Radiobutton(ifrm, variable=self.config.local_scale_units, value='degwidth', text='degrees width')
         nxt.pack(side='left')
-        nxt = Radiobutton(ifrm, variable=self.local_scale_units, value='arcminwidth', text='arcminutes width')
+        nxt = Radiobutton(ifrm, variable=self.config.local_scale_units, value='arcminwidth', text='arcminutes width')
         nxt.pack(side='left')
 
         nxt = Label(frm, text='scale_low')
         nxt.grid(row=4, column=0, pady=4, sticky='w')
         nxt = Scale(frm, from_=0, to_=40, orient=HORIZONTAL,
-                    variable=self.local_scale_low, showvalue=0, digits=4,
+                    variable=self.config.local_scale_low, showvalue=0, digits=4,
                     sliderlength=10, length=300, resolution=0.1)
         nxt.grid(row=4, column=1, pady=4)
-        nxt = Entry(frm, textvariable=self.local_scale_low, width=8)
+        nxt = Entry(frm, textvariable=self.config.local_scale_low, width=8)
         nxt.grid(row=4, column=2, pady=4)
         nxt = Label(frm, text='scale_hi')
         nxt.grid(row=5, column=0, pady=4, sticky='w')
         nxt = Scale(frm, from_=0, to_=120, orient=HORIZONTAL,
-                    variable=self.local_scale_hi, showvalue=0, digits=4,
+                    variable=self.config.local_scale_hi, showvalue=0, digits=4,
                     sliderlength=10, length=300, resolution=0.1)
         nxt.grid(row=5, column=1, pady=4)
-        nxt = Entry(frm, textvariable=self.local_scale_hi, width=8)
+        nxt = Entry(frm, textvariable=self.config.local_scale_hi, width=8)
         nxt.grid(row=5, column=2, pady=4)
 
         nxt = Label(frm, text='extra')
         nxt.grid(row=6, column=0, pady=4, sticky='w')
-        nxt = Entry(frm, textvariable=self.local_xtra, width=40)
+        nxt = Entry(frm, textvariable=self.config.local_xtra, width=40)
         nxt.grid(row=6, column=1, pady=4, sticky='we', columnspan=2)
 
         nxt = Button(frm, text='Read from AstroTortilla configuration',
@@ -225,7 +225,7 @@ class PhotoPolarAlign(Frame):
         options = {}
         options['filetypes'] = [('JPEG files', '.jpg .jpeg .JPG .JPEG'),
                                 ('all files', '.*')]
-        options['initialdir'] = self.imgdir
+        options['initialdir'] = self.config.imgdir
         titles = {}
         titles['v'] = 'The vertical image of the Celestial Pole region'
         titles['h'] = 'The horizontal image of the Celestial Pole region'
@@ -238,7 +238,7 @@ class PhotoPolarAlign(Frame):
                 self.update_solved_labels(hint, 'active')
             else:
                 self.update_solved_labels(hint, 'disabled')
-            self.imgdir = dirname(img)
+            self.config.imgdir = dirname(img)
             if hint == 'v':
                 self.vimg_fn = img
                 self.vwcs_fn = wcs
@@ -566,7 +566,7 @@ class PhotoPolarAlign(Frame):
         options = {}
         options['filetypes'] = [('Config files', '.cfg'),
                                 ('all files', '.*')]
-        options['initialdir'] = self.imgdir
+        options['initialdir'] = self.config.imgdir
         options['title'] = 'The AstroTortilla configuration file'
         cfg_fn = tkinter.filedialog.askopenfilename(**options)
         config = configparser.ConfigParser()
@@ -575,19 +575,19 @@ class PhotoPolarAlign(Frame):
             if s == 'Solver-AstrometryNetSolver':
                 for o in config.options(s):
                     if o == 'configfile':
-                        self.local_configfile.set(config.get(s, o))
+                        self.config.local_configfile.set(config.get(s, o))
                     elif o == 'shell':
-                        self.local_shell.set(config.get(s, o))
+                        self.config.local_shell.set(config.get(s, o))
                     elif o == 'downscale':
-                        self.local_downscale.set(config.getint(s, o))
+                        self.config.local_downscale.set(config.getint(s, o))
                     elif o == 'scale_units':
-                        self.local_scale_units.set(config.get(s, o))
+                        self.config.local_scale_units.set(config.get(s, o))
                     elif o == 'scale_low':
-                        self.local_scale_low.set(config.getfloat(s, o,))
+                        self.config.local_scale_low.set(config.getfloat(s, o,))
                     elif o == 'scale_max':
-                        self.local_scale_hi.set(config.getfloat(s, o))
+                        self.config.local_scale_hi.set(config.getfloat(s, o))
                     elif o == 'xtra':
-                        self.local_xtra.set(config.get(s, o,))
+                        self.config.local_xtra.set(config.get(s, o,))
 
         self.stat_bar('Idle')
         return
@@ -689,7 +689,7 @@ class PhotoPolarAlign(Frame):
         self.wvar3 = nxt
         nxt = Label(self.wfrvar, text='API key:')
         nxt.grid(row=4, column=0, sticky='w')
-        nxt = Label(self.wfrvar, text=('%.3s...........' % self.apikey.get()))
+        nxt = Label(self.wfrvar, text=('%.3s...........' % self.config.apikey.get()))
         nxt.grid(row=4, column=1, sticky='e')
         self.wvar4 = nxt
 
@@ -740,7 +740,7 @@ class PhotoPolarAlign(Frame):
     # Some CLI
     def __init__(self, master=None):
         PPA_lib.init_ppa(self)
-        master.geometry(self.usergeo)
+        master.geometry(self.config.usergeo)
 
         # the filenames of images
         self.vimg_fn = ''
@@ -812,36 +812,19 @@ class PhotoPolarAlign(Frame):
         Frame.__init__(self, master)
         self.create_widgets(master)
         # check local solver
-        self.wlvsol.configure(state='disabled')
-        self.wlhsol.configure(state='disabled')
-        self.wlisol.configure(state='disabled')
-        try:
-            self.local_shell.set(self.config.get('local', 'shell'))
-            self.local_downscale.set(self.config.getint('local', 'downscale'))
-            self.local_configfile.set(self.config.get('local', 'configfile'))
-            self.local_scale_units.set(self.config.get('local', 'scale_units'))
-            self.local_scale_low.set(self.config.getfloat('local', 'scale_low'))
-            self.local_scale_hi.set(self.config.getfloat('local', 'scale_hi'))
-            self.local_xtra.set(self.config.get('local', 'xtra'))
-            # check solve-field cmd
-            exit_status = os.system(self.local_shell.get() % 'solve-field > /dev/null')  # TODO: Make this failing not delete all settings
-            if exit_status != 0:
-                print("Can't use local astrometry.net solver, check PATH")
-            else:
-                self.wlvsol.configure(state='active')
-                self.wlhsol.configure(state='active')
-                self.wlisol.configure(state='active')
-        except Exception as e:
-            print(e)
-            self.local_shell.set('')
-            self.local_downscale.set(1)
-            self.local_configfile.set('')
-            self.local_scale_units.set('')
-            self.local_scale_low.set(0)
-            self.local_scale_hi.set(0)
-            self.local_xtra.set('')
-        if not self.apikey.get() or self.apikey.get() == '':
+
+        if self.config.local_shell.get() is None or self.config.local_shell.get() == '':
+            self.wlvsol.configure(state='disabled')
+            self.wlhsol.configure(state='disabled')
+            self.wlisol.configure(state='disabled')
+        else:
+            self.wlvsol.configure(state='active')
+            self.wlhsol.configure(state='active')
+            self.wlisol.configure(state='active')
+
+        if (not self.config.apikey.get() or self.config.apikey.get() == '') and (not self.config.local_shell.get() or self.config.local_shell.get() == ''):  # If nova and local aren't setup, open settings
             self.settings_open()
+
         self.pack()
 
 

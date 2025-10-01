@@ -135,43 +135,43 @@ def write_config_file(ppa):
     Update the user preferences file
     '''
     # the API key
-    if not ppa.config.has_section('nova'):
-        ppa.config.add_section('nova')
-    ppa.config.set('nova', 'apikey', str(ppa.apikey.get()))
+    if not ppa.config_original.has_section('nova'):
+        ppa.config_original.add_section('nova')
+    ppa.config_original.set('nova', 'apikey', str(ppa.config.apikey.get()))
     # the image directory
-    if not ppa.config.has_section('file'):
-        ppa.config.add_section('file')
-    ppa.config.set('file', 'imgdir', str(ppa.imgdir))
+    if not ppa.config_original.has_section('file'):
+        ppa.config_original.add_section('file')
+    ppa.config_original.set('file', 'imgdir', str(ppa.config.imgdir))
     # the geometry
-    if not ppa.config.has_section('appearance'):
-        ppa.config.add_section('appearance')
-    ppa.config.set('appearance', 'geometry',
+    if not ppa.config_original.has_section('appearance'):
+        ppa.config_original.add_section('appearance')
+    ppa.config_original.set('appearance', 'geometry',
                    str(ppa.myparent.winfo_geometry()))
     # the operating options
-    if not ppa.config.has_section('operations'):
-        ppa.config.add_section('operations')
-    ppa.config.set('operations', 'restrict scale',
-                   str(ppa.restrict_scale.get()))
+    if not ppa.config_original.has_section('operations'):
+        ppa.config_original.add_section('operations')
+    ppa.config_original.set('operations', 'restrict scale',
+                   str(ppa.config.restrict_scale.get()))
     # the local solve options
-    if not ppa.config.has_section('local'):
-        ppa.config.add_section('local')
-    ppa.config.set('local', 'shell',
-                   str(ppa.local_shell.get()).replace('%', '%%'))  # Need to escape format characters so they get read properly
-    ppa.config.set('local', 'downscale',
-                   str(ppa.local_downscale.get()))
-    ppa.config.set('local', 'configfile',
-                   str(ppa.local_configfile.get()))
-    ppa.config.set('local', 'scale_units',
-                   str(ppa.local_scale_units.get()))
-    ppa.config.set('local', 'scale_low',
-                   str(ppa.local_scale_low.get()))
-    ppa.config.set('local', 'scale_hi',
-                   str(ppa.local_scale_hi.get()))
-    ppa.config.set('local', 'xtra',
-                   str(ppa.local_xtra.get()))
+    if not ppa.config_original.has_section('local'):
+        ppa.config_original.add_section('local')
+    ppa.config_original.set('local', 'shell',
+                   str(ppa.config.local_shell.get()).replace('%', '%%'))  # Need to escape format characters so they get read properly
+    ppa.config_original.set('local', 'downscale',
+                   str(ppa.config.local_downscale.get()))
+    ppa.config_original.set('local', 'configfile',
+                   str(ppa.config.local_configfile.get()))
+    ppa.config_original.set('local', 'scale_units',
+                   str(ppa.config.local_scale_units.get()))
+    ppa.config_original.set('local', 'scale_low',
+                   str(ppa.config.local_scale_low.get()))
+    ppa.config_original.set('local', 'scale_hi',
+                   str(ppa.config.local_scale_hi.get()))
+    ppa.config_original.set('local', 'xtra',
+                   str(ppa.config.local_xtra.get()))
 
     with open(ppa.cfgfn, 'w') as cfgfile:
-        ppa.config.write(cfgfile)
+        ppa.config_original.write(cfgfile)
     cfgfile.close()
 
 
@@ -185,7 +185,7 @@ def update_scale(ppa, hint):
             ppa.scale = scale_frm_wcs(ppa.iwcs_fn)
         ppa.havescale = True
     except:
-        ppa.havescale = False
+        ppa.config.havescale = False
         return
 
 
@@ -212,7 +212,7 @@ def solve(ppa, hint, solver):
     open(aimg)  # Throw exception IOError if unable to open images
 
     if solver == 'nova':
-        img2wcs(ppa, ppa.apikey.get(), aimg, awcs, hint)
+        img2wcs(ppa, ppa.config.apikey.get(), aimg, awcs)
     if solver == 'local':
         local_img2wcs(ppa, aimg, awcs, hint)
     ppa.update_solved_labels(hint, 'active')
@@ -241,7 +241,7 @@ def find_ra_axis_pix_coords(v_fits, h_fits):
     if parity_from_header(header_h) == 0 or parity_from_header(header_v) == 0:
         print("Parity h: " + str(parity_from_header(header_h)))
         print("Parity v: " + str(parity_from_header(header_v)))
-        raise Exception("Wrong parity in images")  # I honestly don't know what this means right now
+        raise Exception("Wrong parity in images")  # Parity might be the mirroredness of the image?
         return
 
     def displacement(coords):  # Is the point in the sky at this pixel coordinate in the same pixel coordinate in the other image? Return difference
@@ -301,8 +301,73 @@ def find_error(axis, hdulist_best):
     return error
 
 
+class PPAConfig:
+    def __init__(self):
+        import configparser
+        self.cfgfn = get_config_file_path()
+        self.config_original = configparser.ConfigParser()
+        self.config_original.read(self.cfgfn)
+
+        self.local_shell = StringVar()  # TODO: Do these need to be special TKinter vars? Can't they just be normal?
+        self.local_downscale = IntVar()
+        self.local_configfile = StringVar()
+        self.local_scale_units = StringVar()
+        self.local_scale_low = DoubleVar()
+        self.local_scale_hi = DoubleVar()
+        self.local_xtra = StringVar()
+
+        self.apikey = StringVar()
+        self.restrict_scale = IntVar(value=0)
+
+        try:
+            k_ini = self.config_original.get('nova', 'apikey')
+        except Exception as e:
+            print("Error reading 'apikey': " + str(e))
+            k_ini = None
+        self.apikey = StringVar(value=k_ini)
+        # ...the Image directory
+        try:
+            self.imgdir = self.config_original.get('file', 'imgdir')
+        except Exception as e:
+            print("Error reading 'imgdir': " + str(e))
+            self.imgdir = None
+        # ...geometry
+        try:
+            self.usergeo = self.config_original.get('appearance', 'geometry')
+        except Exception as e:
+            print("Error reading 'geometry': " + str(e))
+            self.usergeo = None
+        # do we want to help solves by restricting the scale once we have an estimate
+        try:
+            self.restrict_scale.set(self.config_original.getint('operations', 'restrict scale'))
+        except Exception as e:
+            print("Error reading 'restrict scale': " + str(e))
+            self.restrict_scale.set(0)
+
+        try:
+            self.local_shell.set(self.config_original.get('local', 'shell'))
+            self.local_downscale.set(self.config_original.getint('local', 'downscale'))
+            self.local_configfile.set(self.config_original.get('local', 'configfile'))
+            self.local_scale_units.set(self.config_original.get('local', 'scale_units'))
+            self.local_scale_low.set(self.config_original.getfloat('local', 'scale_low'))
+            self.local_scale_hi.set(self.config_original.getfloat('local', 'scale_hi'))
+            self.local_xtra.set(self.config_original.get('local', 'xtra'))
+            # check solve-field cmd
+            exit_status = os.system(self.local_shell.get() % 'solve-field > /dev/null')  # TODO: When this fails, disable local solve. Don't delete the settings
+            if exit_status != 0:
+                print("Can't use local astrometry.net solver, check PATH")
+        except Exception as e:
+            print("Error loading local configs: " + str(e))
+            self.local_shell.set('')
+            self.local_downscale.set(1)
+            self.local_configfile.set('')
+            self.local_scale_units.set('')
+            self.local_scale_low.set(0)
+            self.local_scale_hi.set(0)
+            self.local_xtra.set('')
+
+
 def init_ppa(ppa):
-    import configparser
     import numpy
     # a F8Ib 2.0 mag star, Alpha Ursa Minoris
     ppa.polaris = numpy.array([[037.954561, 89.264109]], numpy.float64)
@@ -322,44 +387,13 @@ def init_ppa(ppa):
     # the pixel coords of the RA axis, if solution exists
     ppa.axis = None
     ppa.havea = False
+
+    ppa.scale = None
+    ppa.havescale = False
     # the Settings window
     ppa.settings_win = None
     # the User preferences file
-    ppa.cfgfn = get_config_file_path()
-
-    ppa.local_shell = StringVar()
-    ppa.local_downscale = IntVar()
-    ppa.local_configfile = StringVar()
-    ppa.local_scale_units = StringVar()
-    ppa.local_scale_low = DoubleVar()
-    ppa.local_scale_hi = DoubleVar()
-    ppa.local_xtra = StringVar()
-
-    # Read the User preferences
-    ppa.config = configparser.ConfigParser()
-    ppa.config.read(ppa.cfgfn)
-    # ...the key
-    try:
-        k_ini = ppa.config.get('nova', 'apikey')
-    except:
-        k_ini = None
-    ppa.apikey = StringVar(value=k_ini)
-    # ...the Image directory
-    try:
-        ppa.imgdir = ppa.config.get('file', 'imgdir')
-    except:
-        ppa.imgdir = None
-    # ...geometry
-    try:
-        ppa.usergeo = ppa.config.get('appearance', 'geometry')
-    except:
-        ppa.usergeo = None
-    # do we want to help solves by restricting the scale once we have an estimate
-    ppa.restrict_scale = IntVar(value=0)
-    try:
-        ppa.restrict_scale.set(ppa.config.getint('operations', 'restrict scale'))
-    except:
-        ppa.restrict_scale.set(0)
+    ppa.config = PPAConfig()
 
 
 def local_img2wcs(ppa, filename, wcsfn, hint):
@@ -376,22 +410,22 @@ def local_img2wcs(ppa, filename, wcsfn, hint):
             # first rough estimate of scale
             print('___________________________________________________________')
             # solve-field provided by Astrometry.net package
-            cmd = 'solve-field -b ' + ppa.local_configfile.get()
-            if ppa.havescale and ppa.restrict_scale.get() == 1:
+            cmd = 'solve-field -b ' + ppa.config.local_configfile.get()
+            if ppa.havescale and ppa.config.restrict_scale.get() == 1:
                 up_lim = ppa.scale * 1.05
                 lo_lim = ppa.scale * 0.95
                 cmd = cmd + (' -u app -L %.2f -H %.2f ' % (lo_lim, up_lim))
             else:
-                cmd = cmd + ' -u ' + ppa.local_scale_units.get()
-                cmd = cmd + (' -L %.2f' % ppa.local_scale_low.get())
-                cmd = cmd + (' -H %.2f' % ppa.local_scale_hi.get())
-            if ppa.local_downscale.get() != 1:
-                cmd = cmd + (' -z %d' % ppa.local_downscale.get())
-            cmd = cmd + ' ' + ppa.local_xtra.get()
+                cmd = cmd + ' -u ' + ppa.config.local_scale_units.get()
+                cmd = cmd + (' -L %.2f' % ppa.config.local_scale_low.get())
+                cmd = cmd + (' -H %.2f' % ppa.config.local_scale_hi.get())
+            if ppa.config.local_downscale.get() != 1:
+                cmd = cmd + (' -z %d' % ppa.config.local_downscale.get())
+            cmd = cmd + ' ' + ppa.config.local_xtra.get()
             cmd = cmd + ' -O '
             cmd = cmd + ' -D ' + os.path.dirname(wcsfn)  # Output files to specified cache directory
             cmd = cmd + ' \\"%s\\"'
-            template = ((ppa.local_shell.get() % cmd))
+            template = ((ppa.config.local_shell.get() % cmd))
             # print template
             cmd = (template % filename)
             print(cmd)
@@ -402,7 +436,7 @@ def local_img2wcs(ppa, filename, wcsfn, hint):
 
 
 # Used by GUI. Not much left of use for PPA
-def img2wcs(ppa, ankey, filename, wcsfn, hint):
+def img2wcs(ppa, ankey, filename, wcsfn):
     '''
     Plate solves one image
     '''
@@ -494,7 +528,7 @@ def img2wcs(ppa, ankey, filename, wcsfn, hint):
     opt.wcs = wcsfn
     opt.apikey = ankey
     opt.upload = filename
-    if ppa.havescale and ppa.restrict_scale.get() == 1:
+    if ppa.havescale and ppa.config.restrict_scale.get() == 1:
         opt.scale_units = 'arcsecperpix'
         opt.scale_est = ('%.2f' % ppa.scale)
         opt.scale_err = 5
