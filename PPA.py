@@ -41,17 +41,6 @@ def about_f():
                                 'Visit https://github.com/SudoWatson/PhotoPolarAlign for more information')
 
 
-def clear_cache_f():
-    '''
-    Confirmation window for clearing cache
-    '''
-    import tkinter.messagebox
-    if tkinter.messagebox.askyesno('Clear Cache?',
-                                   "This will permanently delete all files in '" + PPA_lib.get_cache_file_path() + "'. Are you sure you wish to continue?"):
-        import shutil
-        shutil.rmtree(PPA_lib.get_cache_file_path())
-
-
 def cross(crd, img, colour):
     '''
     Annotate with a cross for the RA axis
@@ -215,6 +204,21 @@ class PhotoPolarAlign(Frame):
         '''
         PPA_lib.write_config_file(self)
         self.myparent.destroy()
+
+    def clear_cache_f(self):
+        '''
+        Confirmation window for clearing cache
+        '''
+        import tkinter.messagebox
+        if tkinter.messagebox.askyesno('Clear Cache?',
+                                       "This will permanently delete all files in '" + PPA_lib.get_cache_file_path() + "'. Are you sure you wish to continue?"):
+            import shutil
+            shutil.rmtree(PPA_lib.get_cache_file_path())
+            self.update_solved_labels('v', 'disabled')
+            self.update_solved_labels('h', 'disabled')
+            self.update_solved_labels('i', 'disabled')
+
+
 
     def get_file(self, hint):
         '''
@@ -607,7 +611,7 @@ class PhotoPolarAlign(Frame):
         self.filemenu.add_command(label='Settings...',
                                   command=self.settings_open)
         self.filemenu.add_command(label='Clear cache',
-                                  command=clear_cache_f)
+                                  command=self.clear_cache_f)
         self.filemenu.add_command(label='Exit', command=self.quit_method)
         self.helpmenu.add_command(label='Help', command=help_f)
         self.helpmenu.add_command(label='About...', command=about_f)
