@@ -203,7 +203,14 @@ def solve(ppa, hint, solver):
     open(aimg)  # Throw exception IOError if unable to open images
 
     if solver == 'nova':
-        img2wcs(ppa, ppa.config.apikey, aimg, awcs)
+        scale_to_use = None
+        if ppa.havescale and ppa.config.restrict_scale == 1:
+            scale_to_use = ppa.scale
+        try:
+            nova_img2wcs(ppa.config.apikey, aimg, awcs, scale_to_use)
+        except Exception:
+            ppa.stat_bar("An error has occured. Check console for more details.")
+
     if solver == 'local':
         local_img2wcs(ppa, aimg, awcs, hint)
     ppa.update_solved_labels(hint, 'active')
@@ -418,207 +425,6 @@ def local_img2wcs(ppa, filename, wcsfn, hint):
     print('___________________________________________________________')
 
 
-# Used by GUI. Not much left of use for PPA
-def img2wcs(ppa, ankey, filename, wcsfn):
-    '''
-    Plate solves one image
-    '''
-    import optparse
-    import time
-    t_start = time.time()
-    parser = optparse.OptionParser()
-    parser.add_option('--server', dest='server',
-                      default=NovaClient.default_url,
-                      help='Set server base URL (eg, %default)')
-    parser.add_option('--apikey', '-k', dest='apikey',
-                      help='API key for Astrometry.net web service; if not' +
-                      'given will check AN_API_KEY environment variable')
-    parser.add_option('--upload', '-u', dest='upload', help='Upload a file')
-    parser.add_option('--wait', '-w', dest='wait', action='store_true',
-                      help='After submitting, monitor job status')
-    parser.add_option('--wcs', dest='wcs',
-                      help='Download resulting wcs.fits file, saving to ' +
-                      'given filename; implies --wait if --urlupload or' +
-                      '--upload')
-    parser.add_option('--kmz', dest='kmz',
-                      help='Download resulting kmz file, saving to given ' +
-                      'filename; implies --wait if --urlupload or --upload')
-    parser.add_option('--urlupload', '-U', dest='upload_url',
-                      help='Upload a file at specified url')
-    parser.add_option('--scale-units', dest='scale_units',
-                      choices=('arcsecperpix', 'arcminwidth', 'degwidth',
-                               'focalmm'),
-                      help='Units for scale estimate')
-    parser.add_option('--scale-lower', dest='scale_lower', type=float,
-                      help='Scale lower-bound')
-    parser.add_option('--scale-upper', dest='scale_upper', type=float,
-                      help='Scale upper-bound')
-    parser.add_option('--scale-est', dest='scale_est', type=float,
-                      help='Scale estimate')
-    parser.add_option('--scale-err', dest='scale_err', type=float,
-                      help='Scale estimate error (in PERCENT), eg "10" if' +
-                      'you estimate can be off by 10%')
-    parser.add_option('--ra', dest='center_ra', type=float, help='RA center')
-    parser.add_option('--dec', dest='center_dec', type=float,
-                      help='Dec center')
-    parser.add_option('--radius', dest='radius', type=float,
-                      help='Search radius around RA,Dec center')
-    parser.add_option('--downsample', dest='downsample_factor', type=int,
-                      help='Downsample image by this factor')
-    parser.add_option('--parity', dest='parity', choices=('0', '1'),
-                      help='Parity (flip) of image')
-    parser.add_option('--tweak-order', dest='tweak_order', type=int,
-                      help='SIP distortion order (default: 2)')
-    parser.add_option('--crpix-center', dest='crpix_center',
-                      action='store_true', default=None,
-                      help='Set reference point to center of image?')
-    parser.add_option('--sdss', dest='sdss_wcs', nargs=2,
-                      help='Plot SDSS image for the given WCS file; write ' +
-                      'plot to given PNG filename')
-    parser.add_option('--galex', dest='galex_wcs', nargs=2,
-                      help='Plot GALEX image for the given WCS file; write' +
-                      'plot to given PNG filename')
-    parser.add_option('--substatus', '-s', dest='sub_id',
-                      help='Get status of a submission')
-    parser.add_option('--jobstatus', '-j', dest='job_id',
-                      help='Get status of a job')
-    parser.add_option('--jobs', '-J', dest='myjobs', action='store_true',
-                      help='Get all my jobs')
-    parser.add_option('--jobsbyexacttag', '-T', dest='jobs_by_exact_tag',
-                      help='Get a list of jobs associated with a given' +
-                      'tag--exact match')
-    parser.add_option('--jobsbytag', '-t', dest='jobs_by_tag',
-                      help='Get a list of jobs associated with a given tag')
-    parser.add_option('--private', '-p', dest='public', action='store_const',
-                      const='n', default='y',
-                      help='Hide this submission from other users')
-    parser.add_option('--allow_mod_sa', '-m', dest='allow_mod',
-                      action='store_const', const='sa', default='d',
-                      help='Select license to allow derivative works of ' +
-                      'submission, but only if shared under same conditions ' +
-                      'of original license')
-    parser.add_option('--no_mod', '-M', dest='allow_mod', action='store_const',
-                      const='n', default='d',
-                      help='Select license to disallow derivative works of ' +
-                      'submission')
-    parser.add_option('--no_commercial', '-c', dest='allow_commercial',
-                      action='store_const', const='n', default='d',
-                      help='Select license to disallow commercial use of' +
-                      ' submission')
-    # load opt with defaults, as above
-    opt, args = parser.parse_args()
-    # add given arguments
-    opt.wcs = wcsfn
-    opt.apikey = ankey
-    opt.upload = filename
-    if ppa.havescale and ppa.config.restrict_scale == 1:
-        opt.scale_units = 'arcsecperpix'
-        opt.scale_est = ('%.2f' % ppa.scale)
-        opt.scale_err = 5
-    # DEBUG print opt
-    print('with estimated scale', opt.scale_est)
-    client = NovaClient(apiurl=opt.server)
-    try:
-        client.login(opt.apikey)
-    except RequestError:
-        ppa.stat_bar("Couldn't log on to nova.astrometry.net - Check the API key")
-        return
-
-    if opt.upload or opt.upload_url:
-        if opt.wcs or opt.kmz:
-            opt.wait = True
-        kwargs = dict()
-        if opt.scale_lower and opt.scale_upper:
-            kwargs.update(scale_lower=opt.scale_lower,
-                          scale_upper=opt.scale_upper,
-                          scale_type='ul')
-        elif opt.scale_est and opt.scale_err:
-            kwargs.update(scale_est=opt.scale_est,
-                          scale_err=opt.scale_err,
-                          scale_type='ev')
-        elif opt.scale_lower or opt.scale_upper:
-            kwargs.update(scale_type='ul')
-            if opt.scale_lower:
-                kwargs.update(scale_lower=opt.scale_lower)
-            if opt.scale_upper:
-                kwargs.update(scale_upper=opt.scale_upper)
-
-        for key in ['scale_units', 'center_ra', 'center_dec', 'radius',
-                    'downsample_factor', 'tweak_order', 'crpix_center', ]:
-            if getattr(opt, key) is not None:
-                kwargs[key] = getattr(opt, key)
-        if opt.parity is not None:
-            kwargs.update(parity=int(opt.parity))
-        if opt.upload:
-            upres = client.upload(opt.upload, **kwargs)
-        stat = upres['status']
-        if stat != 'success':
-            print('Upload failed: status', stat)
-            print(upres)
-            sys.exit(-1)
-        opt.sub_id = upres['subid']
-    if opt.wait:
-        if opt.job_id is None:
-            if opt.sub_id is None:
-                print("Can't --wait without a submission id or job id!")
-                sys.exit(-1)
-            while True:
-                stat = client.sub_status(opt.sub_id, justdict=True)
-                # print 'Got status:', stat
-                jobs = stat.get('jobs', [])
-                if len(jobs):
-                    # Find the first elem in jobs that is not None  # TODO: Cleanup
-                    for j in jobs:
-                        if j is not None:
-                            break
-                    if j is not None:
-                        print('Selecting job id', j)
-                        opt.job_id = j
-                        break
-                time.sleep(5)
-        success = False
-        while True:
-            stat = client.job_status(opt.job_id, justdict=True)
-            # print 'Got job status:', stat
-            # TODO : stat may be None! should recover
-            if stat.get('status', '') in ['success']:
-                success = (stat['status'] == 'success')
-                break
-            time.sleep(5)
-        if success:
-            client.job_status(opt.job_id)
-            retrieveurls = []
-            if opt.wcs:
-                # We don't need the API for this, just construct URL
-                url = opt.server.replace('/api/', '/wcs_file/%i' % opt.job_id)
-                retrieveurls.append((url, opt.wcs))
-            for url, fne in retrieveurls:
-                print('Retrieving file from', url)
-                fle = urlopen(url)
-                txt = fle.read()
-                wfl = open(fne, 'wb')
-                wfl.write(txt)
-                wfl.close()
-                print('Wrote to', fne)
-                print('nova solve time ' + str(time.time() - t_start))
-                print('___________________________________________________________')
-        opt.job_id = None
-        opt.sub_id = None
-    if opt.sub_id:
-        print(client.sub_status(opt.sub_id))
-    if opt.job_id:
-        print(client.job_status(opt.job_id))
-    if opt.jobs_by_tag:
-        tag = opt.jobs_by_tag
-        print(client.jobs_by_tag(tag, None))
-    if opt.jobs_by_exact_tag:
-        tag = opt.jobs_by_exact_tag
-        print(client.jobs_by_tag(tag, 'yes'))
-    if opt.myjobs:
-        jobs = client.myjobs()
-        print(jobs)
-
-
 def nova_img2wcs(nova_key, filename, wcsfn, scale: float = None):
     '''
     Plate solves one image
@@ -731,7 +537,7 @@ def nova_img2wcs(nova_key, filename, wcsfn, scale: float = None):
             self.galex_wcs = None
             self.sub_id = None   # Do these really need to be options
             self.job_id = None
-            self.myjobs = True
+            self.myjobs = False
             self.jobs_by_exact_tag = None
             self.jobs_by_tag = None
             self.public = 'n'  # y for yes, n for no
@@ -838,15 +644,20 @@ def nova_img2wcs(nova_key, filename, wcsfn, scale: float = None):
         opt.job_id = None
         opt.sub_id = None
     if opt.sub_id:
+        print("Sub ID:")
         print(client.sub_status(opt.sub_id))
     if opt.job_id:
+        print("Job ID:")
         print(client.job_status(opt.job_id))
     if opt.jobs_by_tag:
         tag = opt.jobs_by_tag
+        print("Jobs by Tag:")
         print(client.jobs_by_tag(tag, None))
     if opt.jobs_by_exact_tag:
         tag = opt.jobs_by_exact_tag
+        print("Jobs by Exact Tag:")
         print(client.jobs_by_tag(tag, 'yes'))
     if opt.myjobs:
         jobs = client.myjobs()
+        print("My Jobs:")
         print(jobs)
