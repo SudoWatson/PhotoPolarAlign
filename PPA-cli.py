@@ -51,13 +51,19 @@ vWcsPath = PPA_lib.get_wcs_file_path(vImgPath, cache_dir)
 solve_img(vImgPath, vWcsPath)
 
 iImgPath = args.improved
-iWcsPath = PPA_lib.get_wcs_file_path(iImgPath, cache_dir)
+iWcsPath = None
 if (iImgPath is not None):
+    iWcsPath = PPA_lib.get_wcs_file_path(iImgPath, cache_dir)
     solve_img(iImgPath, iWcsPath)
 
 
 # Have the wcs files, just get the error
-error = PPA_lib.find_error(vWcsPath, hWcsPath)
+if iImgPath is None:
+    error = PPA_lib.find_error(vWcsPath, hWcsPath)
+else:
+    error = PPA_lib.find_improved_error(vWcsPath, hWcsPath, iWcsPath)
+
+
 def formatError(err):
     if error[0] > 0:
         inst = 'Right '
@@ -73,6 +79,7 @@ def formatError(err):
     decdeg = abs(error[1])
     inst = inst + ('%02d:%02d:%02d' % PPA_lib.decdeg2dms(decdeg))
     return inst
+
 
 print(formatError(error))
 
