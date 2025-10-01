@@ -35,44 +35,48 @@ cache_dir = args.cache_dir
 return_more_data = args.more_data
 solver = args.solver
 
+def solve_img(imagePath, wcsPath):
+    if not os.path.exists(wcsPath):
+        if not os.path.exists(imagePath):
+            raise IOError(f"Image file '{imagePath}' not found.")
+        PPA_lib.nova_img2wcs("ieijubwmyzvncdkk", imagePath, wcsPath)
+
+
 hImgPath = args.horizontal
 hWcsPath = PPA_lib.get_wcs_file_path(hImgPath, cache_dir)
-if not os.path.exists(hWcsPath):
-    if not os.path.exists(hImgPath):
-        raise IOError(f"Image file '{hImgPath}' not found.")
-    PPA_lib.nova_img2wcs("ieijubwmyzvncdkk", hImgPath, hWcsPath)
+solve_img(hImgPath, hWcsPath)
 
 vImgPath = args.vertical
 vWcsPath = PPA_lib.get_wcs_file_path(vImgPath, cache_dir)
-if not os.path.exists(vWcsPath):
-    if not os.path.exists(vImgPath):
-        raise IOError(f"Image file '{vImgPath}' not found.")
-    PPA_lib.nova_img2wcs("ieijubwmyzvncdkk", vImgPath, vWcsPath)
+solve_img(vImgPath, vWcsPath)
+
+iImgPath = args.improved
+iWcsPath = PPA_lib.get_wcs_file_path(iImgPath, cache_dir)
+if (iImgPath is not None):
+    solve_img(iImgPath, iWcsPath)
 
 
 # Have the wcs files, just get the error
 error = PPA_lib.find_error(vWcsPath, hWcsPath)
-if error[0] > 0:
-    inst = 'Right '
-else:
-    inst = 'Left '
-decdeg = abs(error[0])
-inst = inst + ('%02d:%02d:%02d' % PPA_lib.decdeg2dms(decdeg))
+def formatError(err):
+    if error[0] > 0:
+        inst = 'Right '
+    else:
+        inst = 'Left '
+    decdeg = abs(error[0])
+    inst = inst + ('%02d:%02d:%02d' % PPA_lib.decdeg2dms(decdeg))
 
-if error[1] > 0:
-    inst = inst + ' Up '
-else:
-    inst = inst + ' Down '
-decdeg = abs(error[1])
-inst = inst + ('%02d:%02d:%02d' % PPA_lib.decdeg2dms(decdeg))
-print(inst)
+    if error[1] > 0:
+        inst = inst + ' Up '
+    else:
+        inst = inst + ' Down '
+    decdeg = abs(error[1])
+    inst = inst + ('%02d:%02d:%02d' % PPA_lib.decdeg2dms(decdeg))
+    return inst
+
+print(formatError(error))
 
 exit(1)
-iImgPath = args.improved
-iWcsPath = PPA_lib.get_wcs_file_path(iImgPath, cache_dir)
-if not os.path.exists(iWcsPath):
-    if not os.path.exists(iImgPath):
-        raise IOError(f"Image file '{iImgPath}' not found.")
 
 
 
