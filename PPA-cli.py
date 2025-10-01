@@ -45,11 +45,14 @@ solver = args.solver
 # Provide the "more" data output
 
 
+config = PPA_lib.PPAConfig()
+
+
 def solve_img(imagePath, wcsPath):
     if not os.path.exists(wcsPath):
         if not os.path.exists(imagePath):
             raise IOError(f"Image file '{imagePath}' not found.")
-        PPA_lib.nova_img2wcs("ieijubwmyzvncdkk", imagePath, wcsPath)
+        PPA_lib.nova_img2wcs(config.apikey, imagePath, wcsPath)
 
 
 hImgPath = args.horizontal
