@@ -64,9 +64,9 @@ if iImgPath is not None:
 axis = PPA_lib.find_ra_axis_pix_coords(hdulist_v[0], hdulist_h[0])
 # Have the wcs files, just get the error
 if hdulist_i is None:
-    error = PPA_lib.find_error(axis, hdulist_v, hdulist_h)
+    error = PPA_lib.find_error(axis, hdulist_h)
 else:
-    error = PPA_lib.find_error(axis, hdulist_v, hdulist_i)
+    error = PPA_lib.find_error(axis, hdulist_i)
 
 
 def formatError(err):

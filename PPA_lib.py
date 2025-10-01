@@ -260,28 +260,25 @@ def find_ra_axis_pix_coords(v_fits, h_fits):
 
 
 # hdulist_best: The best horizontal image, whether it's the first h or the recent i
-def find_error(axis, hdulist_v, hdulist_best):
+def find_error(axis, hdulist_best):
     '''
     Annotate the improvement image
     '''
     from astropy.time import Time
     from astropy.coordinates import SkyCoord
     from astropy.coordinates import FK5
-    from astropy.io import fits
     from astropy import wcs
     import numpy
 
     # Parse the WCS keywords in the primary HDU
-    header_v = hdulist_v[0].header
     header_best = hdulist_best[0].header
 
-    decv = dec_frm_header(header_v)
     dec_best = dec_frm_header(header_best)
 
     now = Time.now()
-    if decv > 65 and dec_best > 65:
+    if dec_best > 65:
         cp = SkyCoord(ra=0, dec=90, frame='fk5', unit='deg', equinox=now)
-    elif decv < -65 and dec_best < -65:
+    elif dec_best < -65:
         cp = SkyCoord(ra=0, dec=-90, frame='fk5', unit='deg', equinox=now)
     else:
         raise Exception("Nowhere near Celestial Pole. Must be <25 degrees")
