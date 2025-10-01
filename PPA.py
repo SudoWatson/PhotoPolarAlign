@@ -122,7 +122,7 @@ class PhotoPolarAlign(Frame):
         User asked to close the Settings
         '''
         PPA_lib.write_config_file(self)
-        self.wvar4.configure(text=('%.3s...........' % self.config.apikey.get()))
+        self.wvar4.configure(text=('%.3s...........' % self.config.apikey))
         self.settings_win.destroy()
 
     def settings_open(self):
@@ -689,7 +689,7 @@ class PhotoPolarAlign(Frame):
         self.wvar3 = nxt
         nxt = Label(self.wfrvar, text='API key:')
         nxt.grid(row=4, column=0, sticky='w')
-        nxt = Label(self.wfrvar, text=('%.3s...........' % self.config.apikey.get()))
+        nxt = Label(self.wfrvar, text=('%.3s...........' % self.config.apikey))
         nxt.grid(row=4, column=1, sticky='e')
         self.wvar4 = nxt
 
@@ -813,7 +813,7 @@ class PhotoPolarAlign(Frame):
         self.create_widgets(master)
         # check local solver
 
-        if self.config.local_shell.get() is None or self.config.local_shell.get() == '':
+        if self.config.local_shell is None or self.config.local_shell == '':
             self.wlvsol.configure(state='disabled')
             self.wlhsol.configure(state='disabled')
             self.wlisol.configure(state='disabled')
@@ -822,7 +822,7 @@ class PhotoPolarAlign(Frame):
             self.wlhsol.configure(state='active')
             self.wlisol.configure(state='active')
 
-        if (not self.config.apikey.get() or self.config.apikey.get() == '') and (not self.config.local_shell.get() or self.config.local_shell.get() == ''):  # If nova and local aren't setup, open settings
+        if (not self.config.apikey or self.config.apikey == '') and (not self.config.local_shell or self.config.local_shell == ''):  # If nova and local aren't setup, open settings
             self.settings_open()
 
         self.pack()
