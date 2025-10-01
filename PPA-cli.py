@@ -1,6 +1,7 @@
 import os
 import argparse
 import PPA_lib
+from astropy.io import fits
 
 argParser = argparse.ArgumentParser(description="A python utility to help align any equotorial telescope by imaging the celestial pole region")
 
@@ -45,23 +46,27 @@ def solve_img(imagePath, wcsPath):
 hImgPath = args.horizontal
 hWcsPath = PPA_lib.get_wcs_file_path(hImgPath, cache_dir)
 solve_img(hImgPath, hWcsPath)
+hdulist_h = fits.open(hWcsPath)
 
 vImgPath = args.vertical
 vWcsPath = PPA_lib.get_wcs_file_path(vImgPath, cache_dir)
 solve_img(vImgPath, vWcsPath)
+hdulist_v = fits.open(vWcsPath)
 
 iImgPath = args.improved
 iWcsPath = None
-if (iImgPath is not None):
+hdulist_i = None
+if iImgPath is not None:
     iWcsPath = PPA_lib.get_wcs_file_path(iImgPath, cache_dir)
     solve_img(iImgPath, iWcsPath)
+    hdulist_i = fits.open(iWcsPath)
 
-
+axis = PPA_lib.find_ra_axis_pix_coords(hdulist_v[0], hdulist_h[0])
 # Have the wcs files, just get the error
-if iImgPath is None:
-    error = PPA_lib.find_error(vWcsPath, hWcsPath)
+if hdulist_i is None:
+    error = PPA_lib.find_error(axis, hdulist_v, hdulist_h)
 else:
-    error = PPA_lib.find_improved_error(vWcsPath, hWcsPath, iWcsPath)
+    error = PPA_lib.find_error(axis, hdulist_v, hdulist_i)
 
 
 def formatError(err):

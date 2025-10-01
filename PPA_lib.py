@@ -259,55 +259,8 @@ def find_ra_axis_pix_coords(v_fits, h_fits):
     return ra_axis_pix_coords
 
 
-def find_error(v_wcs_filename, h_wcs_filename):
-    '''
-    Find error in RA axis
-    '''
-    from astropy.time import Time
-    from astropy.coordinates import SkyCoord
-    from astropy.coordinates import FK5
-    from astropy.io import fits
-    from astropy import wcs
-    import numpy
-
-    # Load the FITS hdulist using astropy.io.fits
-    hdulist_v = fits.open(v_wcs_filename)
-    hdulist_h = fits.open(h_wcs_filename)
-
-    # Parse the WCS keywords in the primary HDU
-    header_v = hdulist_v[0].header
-    header_h = hdulist_h[0].header
-    decv = dec_frm_header(header_v)
-    dech = dec_frm_header(header_h)
-    now = Time.now()
-    if decv > 65 and dech > 65:
-        cp = SkyCoord(ra=0, dec=90, frame='fk5', unit='deg', equinox=now)
-    elif decv < -65 and dech < -65:
-        cp = SkyCoord(ra=0, dec=-90, frame='fk5', unit='deg', equinox=now)
-    else:
-        raise Exception("Nowhere near Celestial Pole. Must be <25 degrees")
-    # CP now, in J2000 coordinates, precess
-    cpj2000 = cp.transform_to(FK5(equinox='J2000'))
-    wcsh = wcs.WCS(header_h)  # TODO: Waring about transformation has more axes (2) than image (0)
-    cp_sky_coord = numpy.array([[cpj2000.ra.deg, cpj2000.dec.deg]], numpy.float64)
-    cp_pixcoord_rel_h = wcsh.wcs_world2pix(cp_sky_coord, 1)  # Pixel coordinates relative to h
-    cp_x = cp_pixcoord_rel_h[0][0]
-    cp_y = cp_pixcoord_rel_h[0][1]
-
-    axis = find_ra_axis_pix_coords(hdulist_v[0], hdulist_h[0])
-    axis_x = axis[0]  # Pixel coords
-    axis_y = axis[1]
-
-    # ppa.scale = scaleh
-    # ppa.havescale = True
-    # error = scaleh * numpy.sqrt((axis_x - cp_x)**2 + (axis_y - cp_y)**2) / 60.0
-
-    scaleh = scale_from_header(header_h)
-    error = [abs(cp_x - axis_x) * scaleh / 3600, abs(cp_y - axis_y) * scaleh / 3600]
-    return error
-
-
-def find_improved_error(v_wcs_filename, h_wcs_filename, i_wcs_filename):
+# hdulist_best: The best horizontal image, whether it's the first h or the recent i
+def find_error(axis, hdulist_v, hdulist_best):
     '''
     Annotate the improvement image
     '''
@@ -318,39 +271,36 @@ def find_improved_error(v_wcs_filename, h_wcs_filename, i_wcs_filename):
     from astropy import wcs
     import numpy
 
-    # Load the FITS hdulist using astropy.io.fits
-    hdulist_v = fits.open(v_wcs_filename)
-    hdulist_h = fits.open(h_wcs_filename)
-    hdulist_i = fits.open(i_wcs_filename)
-
     # Parse the WCS keywords in the primary HDU
     header_v = hdulist_v[0].header
-    header_h = hdulist_h[0].header
-    header_i = hdulist_i[0].header
-    wcsi = wcs.WCS(header_i)
+    header_best = hdulist_best[0].header
+
     decv = dec_frm_header(header_v)
-    dech = dec_frm_header(header_h)
+    dec_best = dec_frm_header(header_best)
+
     now = Time.now()
-    if decv > 65 and dech > 65:
+    if decv > 65 and dec_best > 65:
         cp = SkyCoord(ra=0, dec=90, frame='fk5', unit='deg', equinox=now)
-    elif decv < -65 and dech < -65:
+    elif decv < -65 and dec_best < -65:
         cp = SkyCoord(ra=0, dec=-90, frame='fk5', unit='deg', equinox=now)
     else:
         raise Exception("Nowhere near Celestial Pole. Must be <25 degrees")
+
     cpj2000 = cp.transform_to(FK5(equinox='J2000'))
-    cpskycrd = numpy.array([[cpj2000.ra.deg, cpj2000.dec.deg]],
-                           numpy.float64)
-    cp_pixcoord_rel_i = wcsi.wcs_world2pix(cpskycrd, 1)
-    cp_x = cp_pixcoord_rel_i[0][0]
-    cp_y = cp_pixcoord_rel_i[0][1]
-    axis = find_ra_axis_pix_coords(hdulist_v[0], hdulist_h[0])
+    cp_sky_coords = numpy.array([[cpj2000.ra.deg, cpj2000.dec.deg]], numpy.float64)
+
+    header_best = hdulist_best[0].header
+    wcs_best = wcs.WCS(header_best)
+
+    cp_pixcoord_rel_best = wcs_best.wcs_world2pix(cp_sky_coords, 1)[0]
+    cp_x = cp_pixcoord_rel_best[0]
+    cp_y = cp_pixcoord_rel_best[1]
+
     axis_x = axis[0]  # Pixel coords
     axis_y = axis[1]
-    scalei = scale_from_header(header_i)
-    if parity_from_header(header_i) == 0:  # TODO: Is parity describing something about the orientation?
-        raise Exception("Incorrect parity")
 
-    error = [abs(cp_x - axis_x) * scalei / 3600, abs(cp_y - axis_y) * scalei / 3600]
+    scale_best = scale_from_header(header_best)
+    error = [abs(cp_x - axis_x) * scale_best / 3600, abs(cp_y - axis_y) * scale_best / 3600]
     return error
 
 
