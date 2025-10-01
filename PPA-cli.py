@@ -36,6 +36,15 @@ cache_dir = args.cache_dir
 return_more_data = args.more_data
 solver = args.solver
 
+
+###
+# TODO:
+# Get config params
+#    Separate config from PPA obj
+# Use local vs nova
+# Provide the "more" data output
+
+
 def solve_img(imagePath, wcsPath):
     if not os.path.exists(wcsPath):
         if not os.path.exists(imagePath):
