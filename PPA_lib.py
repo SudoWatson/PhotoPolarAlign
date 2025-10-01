@@ -307,6 +307,53 @@ def find_error(v_wcs_filename, h_wcs_filename):
     return error
 
 
+def find_improved_error(v_wcs_filename, h_wcs_filename, i_wcs_filename):
+    '''
+    Annotate the improvement image
+    '''
+    from astropy.time import Time
+    from astropy.coordinates import SkyCoord
+    from astropy.coordinates import FK5
+    from astropy.io import fits
+    from astropy import wcs
+    import numpy
+
+    # Load the FITS hdulist using astropy.io.fits
+    hdulist_v = fits.open(v_wcs_filename)
+    hdulist_h = fits.open(h_wcs_filename)
+    hdulist_i = fits.open(i_wcs_filename)
+
+    # Parse the WCS keywords in the primary HDU
+    header_v = hdulist_v[0].header
+    header_h = hdulist_h[0].header
+    header_i = hdulist_i[0].header
+    wcsi = wcs.WCS(header_i)
+    decv = dec_frm_header(header_v)
+    dech = dec_frm_header(header_h)
+    now = Time.now()
+    if decv > 65 and dech > 65:
+        cp = SkyCoord(ra=0, dec=90, frame='fk5', unit='deg', equinox=now)
+    elif decv < -65 and dech < -65:
+        cp = SkyCoord(ra=0, dec=-90, frame='fk5', unit='deg', equinox=now)
+    else:
+        raise Exception("Nowhere near Celestial Pole. Must be <25 degrees")
+    cpj2000 = cp.transform_to(FK5(equinox='J2000'))
+    cpskycrd = numpy.array([[cpj2000.ra.deg, cpj2000.dec.deg]],
+                           numpy.float64)
+    cp_pixcoord_rel_i = wcsi.wcs_world2pix(cpskycrd, 1)
+    cp_x = cp_pixcoord_rel_i[0][0]
+    cp_y = cp_pixcoord_rel_i[0][1]
+    axis = find_ra_axis_pix_coords(hdulist_v[0], hdulist_h[0])
+    axis_x = axis[0]  # Pixel coords
+    axis_y = axis[1]
+    scalei = scale_from_header(header_i)
+    if parity_from_header(header_i) == 0:  # TODO: Is parity describing something about the orientation?
+        raise Exception("Incorrect parity")
+
+    error = [abs(cp_x - axis_x) * scalei / 3600, abs(cp_y - axis_y) * scalei / 3600]
+    return error
+
+
 def init_ppa(ppa):
     import configparser
     import numpy
