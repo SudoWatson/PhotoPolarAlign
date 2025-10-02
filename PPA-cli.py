@@ -48,21 +48,18 @@ solver = args.solver
 config = PPA_lib.PPAConfig()
 
 
-def solve_img(imagePath, wcsPath):
-    if not os.path.exists(wcsPath):
-        if not os.path.exists(imagePath):
-            raise IOError(f"Image file '{imagePath}' not found.")
-        PPA_lib.nova_img2wcs(config.apikey, imagePath, wcsPath)
+def solve_img(imagePath):
+    PPA_lib.plate_solve(config, imagePath, solver, cache_dir=cache_dir)
 
 
 hImgPath = args.horizontal
 hWcsPath = PPA_lib.get_wcs_file_path(hImgPath, cache_dir)
-PPA_lib.better_solve(config, hImgPath, "nova", cache_dir=cache_dir)
+solve_img(hImgPath)
 hdulist_h = fits.open(hWcsPath)
 
 vImgPath = args.vertical
 vWcsPath = PPA_lib.get_wcs_file_path(vImgPath, cache_dir)
-PPA_lib.better_solve(config, vImgPath, "nova", cache_dir=cache_dir)
+solve_img(vImgPath)
 hdulist_v = fits.open(vWcsPath)
 
 iImgPath = args.improved
@@ -70,7 +67,7 @@ iWcsPath = None
 hdulist_i = None
 if iImgPath is not None:
     iWcsPath = PPA_lib.get_wcs_file_path(iImgPath, cache_dir)
-    solve_img(iImgPath, iWcsPath)
+    solve_img(iImgPath)
     hdulist_i = fits.open(iWcsPath)
 
 axis = PPA_lib.find_ra_axis_pix_coords(hdulist_v[0], hdulist_h[0])
