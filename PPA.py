@@ -8,6 +8,7 @@ Created on Sun Oct 12 22:40:05 2014
 from __future__ import print_function
 import os
 import sys
+import traceback
 import PPA_lib
 from tkinter import Frame, Tk, Menu, Label, Entry, PhotoImage
 from tkinter import StringVar, IntVar, DoubleVar
@@ -301,9 +302,23 @@ class PhotoPolarAlign(Frame):
             self.stat_bar(('Image filenames coincide - Check the Image filenames'))
             return
         try:
-            PPA_lib.solve(self, hint, solver)
+            match hint:
+                case 'h':
+                    image_path = self.himg_fn
+                case 'v':
+                    image_path = self.vimg_fn
+                case 'i':
+                    image_path = self.iimg_fn
+                case _:
+                    image_path = ""
+                    raise Exception('Invalid hint passed:', hint)
+
+            PPA_lib.better_solve(self.config, image_path, solver, scale=self.scale)
         except IOError:
-            self.stat_bar(("couldn't open the image - Check the Image filename"))
+            self.stat_bar(("Couldn't open the image"))
+        except Exception:
+            print(traceback.format_exc())
+            self.stat_bar("An error has occured. See console for more details.")
 
     def update_display(self, cpcrd, the_scale):
         '''

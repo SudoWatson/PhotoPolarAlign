@@ -206,7 +206,7 @@ def solve(ppa, hint, solver):
         if ppa.scale is not None and ppa.config.restrict_scale == 1:
             scale_to_use = ppa.scale
         try:
-            nova_img2wcs(ppa.config.apikey, aimg, awcs, scale_to_use)
+            nova_img2wcs(ppa.config, aimg, awcs, scale_to_use)
         except Exception:
             ppa.stat_bar("An error has occured. Check console for more details.")
 
@@ -215,6 +215,29 @@ def solve(ppa, hint, solver):
     ppa.update_solved_labels(hint, 'active')
     update_scale(ppa, hint)
     ppa.stat_bar('Idle')
+
+
+def better_solve(config, image_path, solver, scale=None, cache_dir=get_cache_file_path()):
+    '''
+    Solve an image
+    '''
+    aimg = image_path
+    awcs = get_wcs_file_path(image_path, cache_dir)
+    if not os.path.exists(awcs):
+        if not os.path.exists(aimg):
+            raise IOError(f"Image file '{aimg}' not found.")
+
+    open(aimg)  # Throw exception IOError if unable to open images
+
+    match solver:
+        case "nova":
+            scale_to_use = None
+            if scale is not None and config.restrict_scale == 1:
+                scale_to_use = scale
+            nova_img2wcs(config, aimg, awcs, scale_to_use)
+
+        case "local":
+            local_img2wcs(config, aimg, awcs, scale)
 
 
 def find_ra_axis_pix_coords(v_fits, h_fits):
