@@ -10,6 +10,7 @@ import os
 import sys
 import PPA_lib
 from tkinter import Frame, Tk, Menu, Label, Entry, PhotoImage
+from tkinter import StringVar, IntVar, DoubleVar
 from tkinter import Scrollbar, Toplevel, Canvas, Radiobutton
 from tkinter import Button, LabelFrame, Checkbutton, Scale
 from tkinter import HORIZONTAL
@@ -123,16 +124,26 @@ class PhotoPolarAlign(Frame):
         self.settings_win = win
         win.geometry('480x600')
         win.title('Settings')
-        # get the API key information
+
+        var_apikey = StringVar(value=self.config.apikey)
+        var_restrict_scale = IntVar(value=self.config.restrict_scale)
+        var_local_shell = StringVar(value=self.config.local_shell)
+        var_local_downscale = IntVar(value=self.config.local_downscale)
+        var_local_configfile = StringVar(value=self.config.local_configfile)
+        var_local_scale_units = StringVar(value=self.config.local_scale_units)
+        var_local_scale_low = DoubleVar(value=self.config.local_scale_low)
+        var_local_scale_hi = DoubleVar(value=self.config.local_scale_hi)
+        var_local_xtra = StringVar(value=self.config.local_xtra)
+
         frm = LabelFrame(win, borderwidth=2, relief='ridge', text='nova.astrometry.net')
         frm.pack(side='top', ipadx=20, padx=20, fill='x')
         nxt = Label(frm, text='API Key')
         nxt.grid(row=0, column=0, pady=4, sticky='w')
-        nxt = Entry(frm, textvariable=self.config.apikey)
+        nxt = Entry(frm, textvariable=var_apikey)
         nxt.grid(row=0, column=1, pady=4)
         nxt = Label(frm, text='Restrict scale')
         nxt.grid(row=1, column=0, pady=4, sticky='w')
-        nxt = Checkbutton(frm, var=self.config.restrict_scale)
+        nxt = Checkbutton(frm, var=var_restrict_scale)
         nxt.grid(row=1, column=1, pady=4)
 
         frm = LabelFrame(win, borderwidth=2, relief='ridge', text='Local solver Configuration')
@@ -140,14 +151,14 @@ class PhotoPolarAlign(Frame):
 
         nxt = Label(frm, text='shell')
         nxt.grid(row=0, column=0, pady=4, sticky='w')
-        nxt = Entry(frm, textvariable=self.config.local_shell, width=0)
+        nxt = Entry(frm, textvariable=var_local_shell, width=0)
         nxt.grid(row=0, column=1, pady=4, sticky='we', columnspan=2)
 
         ifrm = Frame(frm, bd=0)
         ifrm.grid(row=1, column=0, pady=4, sticky='w', columnspan=3)
         nxt = Label(ifrm, text='downscale')
         nxt.pack(side='left')
-        nxt = Radiobutton(ifrm, variable=self.config.local_downscale, value='1', text='1')
+        nxt = Radiobutton(ifrm, variable=var_local_downscale, value='1', text='1')
         nxt.pack(side='left')
         nxt = Radiobutton(ifrm, variable=self.config.local_downscale, value='2', text='2')
         nxt.pack(side='left')
@@ -156,14 +167,14 @@ class PhotoPolarAlign(Frame):
 
         nxt = Label(frm, text='configfile')
         nxt.grid(row=2, column=0, pady=4, sticky='w')
-        nxt = Entry(frm, textvariable=self.config.local_configfile, width=0)
+        nxt = Entry(frm, textvariable=var_local_configfile, width=0)
         nxt.grid(row=2, column=1, pady=4, sticky='we', columnspan=2)
 
         ifrm = Frame(frm, bd=0)
         ifrm.grid(row=3, column=0, pady=4, sticky='w', columnspan=3)
         nxt = Label(ifrm, text='scale_units')
         nxt.pack(side='left')
-        nxt = Radiobutton(ifrm, variable=self.config.local_scale_units, value='arcsecperpix', text='arcsec/pix')
+        nxt = Radiobutton(ifrm, variable=var_local_scale_units, value='arcsecperpix', text='arcsec/pix')
         nxt.pack(side='left')
         nxt = Radiobutton(ifrm, variable=self.config.local_scale_units, value='degwidth', text='degrees width')
         nxt.pack(side='left')
@@ -173,30 +184,43 @@ class PhotoPolarAlign(Frame):
         nxt = Label(frm, text='scale_low')
         nxt.grid(row=4, column=0, pady=4, sticky='w')
         nxt = Scale(frm, from_=0, to_=40, orient=HORIZONTAL,
-                    variable=self.config.local_scale_low, showvalue=0, digits=4,
+                    variable=var_local_scale_low, showvalue=0, digits=4,
                     sliderlength=10, length=300, resolution=0.1)
         nxt.grid(row=4, column=1, pady=4)
-        nxt = Entry(frm, textvariable=self.config.local_scale_low, width=8)
+        nxt = Entry(frm, textvariable=var_local_scale_low, width=8)
         nxt.grid(row=4, column=2, pady=4)
         nxt = Label(frm, text='scale_hi')
         nxt.grid(row=5, column=0, pady=4, sticky='w')
         nxt = Scale(frm, from_=0, to_=120, orient=HORIZONTAL,
-                    variable=self.config.local_scale_hi, showvalue=0, digits=4,
+                    variable=var_local_scale_hi, showvalue=0, digits=4,
                     sliderlength=10, length=300, resolution=0.1)
         nxt.grid(row=5, column=1, pady=4)
-        nxt = Entry(frm, textvariable=self.config.local_scale_hi, width=8)
+        nxt = Entry(frm, textvariable=var_local_scale_hi, width=8)
         nxt.grid(row=5, column=2, pady=4)
 
         nxt = Label(frm, text='extra')
         nxt.grid(row=6, column=0, pady=4, sticky='w')
-        nxt = Entry(frm, textvariable=self.config.local_xtra, width=40)
+        nxt = Entry(frm, textvariable=var_local_xtra, width=40)
         nxt.grid(row=6, column=1, pady=4, sticky='we', columnspan=2)
 
         nxt = Button(frm, text='Read from AstroTortilla configuration',
                      command=self.slurpAT)
         nxt.grid(row=7, column=0, pady=4, sticky='we', columnspan=3)
 
-        Button(win, text='OK', command=self.settings_destroy).pack(pady=4)
+        def set_and_save_settings():
+            self.config.apikey = var_apikey.get()
+            self.config.restrict_scale = var_restrict_scale.get()
+            self.config.local_shell = var_local_shell.get()
+            self.config.local_downscale = var_local_downscale.get()
+            self.config.local_configfile = var_local_configfile.get()
+            self.config.local_scale_units = var_local_scale_units.get()
+            self.config.local_scale_low = var_local_scale_low.get()
+            self.config.local_scale_hi = var_local_scale_hi.get()
+            self.config.local_xtra = var_local_xtra.get()
+
+            self.settings_destroy()
+
+        Button(win, text='OK', command=set_and_save_settings).pack(pady=4)
 
     def quit_method(self):
         '''
@@ -217,8 +241,6 @@ class PhotoPolarAlign(Frame):
             self.update_solved_labels('v', 'disabled')
             self.update_solved_labels('h', 'disabled')
             self.update_solved_labels('i', 'disabled')
-
-
 
     def get_file(self, hint):
         '''

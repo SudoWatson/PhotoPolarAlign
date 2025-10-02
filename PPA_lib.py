@@ -2,7 +2,6 @@ import os
 import sys
 import platformdirs
 from urllib.request import urlopen
-from tkinter import StringVar, IntVar, DoubleVar  # Replace with non-tkinter types
 from NovaClient import NovaClient
 
 
