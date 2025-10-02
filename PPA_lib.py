@@ -223,9 +223,10 @@ def better_solve(config, image_path, solver, scale=None, cache_dir=get_cache_fil
     '''
     aimg = image_path
     awcs = get_wcs_file_path(image_path, cache_dir)
-    if not os.path.exists(awcs):
-        if not os.path.exists(aimg):
-            raise IOError(f"Image file '{aimg}' not found.")
+    if os.path.exists(awcs):
+        return  # Already solved
+    elif not os.path.exists(aimg):
+        raise IOError(f"Image file '{aimg}' not found.")
 
     open(aimg)  # Throw exception IOError if unable to open images
 

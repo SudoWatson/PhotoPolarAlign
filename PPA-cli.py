@@ -57,12 +57,12 @@ def solve_img(imagePath, wcsPath):
 
 hImgPath = args.horizontal
 hWcsPath = PPA_lib.get_wcs_file_path(hImgPath, cache_dir)
-solve_img(hImgPath, hWcsPath)
+PPA_lib.better_solve(config, hImgPath, "nova", cache_dir=cache_dir)
 hdulist_h = fits.open(hWcsPath)
 
 vImgPath = args.vertical
 vWcsPath = PPA_lib.get_wcs_file_path(vImgPath, cache_dir)
-solve_img(vImgPath, vWcsPath)
+PPA_lib.better_solve(config, vImgPath, "nova", cache_dir=cache_dir)
 hdulist_v = fits.open(vWcsPath)
 
 iImgPath = args.improved
