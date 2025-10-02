@@ -174,50 +174,12 @@ def update_scale(ppa, hint):
         elif hint == 'i':
             ppa.scale = scale_frm_wcs(ppa.iwcs_fn)
         ppa.havescale = True
-    except:
+    except Exception:
         ppa.config.havescale = False
         return
 
 
-def solve(ppa, hint, solver):
-    '''
-    Solve an image
-    '''
-    if hint == 'h' or hint == 'v':
-        if ppa.vimg_fn == ppa.himg_fn:
-            # Throw exception
-            return
-    if hint == 'h':
-        aimg = ppa.himg_fn
-        awcs = ppa.hwcs_fn
-    elif hint == 'v':
-        aimg = ppa.vimg_fn
-        awcs = ppa.vwcs_fn
-    elif hint == 'i':
-        aimg = ppa.iimg_fn
-        awcs = ppa.iwcs_fn
-    else:
-        raise Exception('Invalid hint passed:', hint)
-
-    open(aimg)  # Throw exception IOError if unable to open images
-
-    if solver == 'nova':
-        scale_to_use = None
-        if ppa.scale is not None and ppa.config.restrict_scale == 1:
-            scale_to_use = ppa.scale
-        try:
-            nova_img2wcs(ppa.config, aimg, awcs, scale_to_use)
-        except Exception:
-            ppa.stat_bar("An error has occured. Check console for more details.")
-
-    if solver == 'local':
-        local_img2wcs(ppa.config, aimg, awcs, ppa.scale)
-    ppa.update_solved_labels(hint, 'active')
-    update_scale(ppa, hint)
-    ppa.stat_bar('Idle')
-
-
-def better_solve(config, image_path, solver, scale=None, cache_dir=get_cache_file_path()):
+def plate_solve(config, image_path, solver, scale=None, cache_dir=get_cache_file_path()):
     '''
     Solve an image
     '''
