@@ -314,6 +314,9 @@ class PhotoPolarAlign(Frame):
                     raise Exception('Invalid hint passed:', hint)
 
             PPA_lib.better_solve(self.config, image_path, solver, scale=self.scale)
+            self.update_solved_labels(hint, 'active')
+            PPA_lib.update_scale(self, hint)
+            self.stat_bar('Idle')
         except IOError:
             self.stat_bar(("Couldn't open the image"))
         except Exception:
