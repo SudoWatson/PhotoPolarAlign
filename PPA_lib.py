@@ -280,7 +280,7 @@ def find_error(axis, hdulist_best):
     axis_y = axis[1]
 
     scale_best = scale_from_header(header_best)
-    error = [abs(cp_x - axis_x) * scale_best / 3600, abs(cp_y - axis_y) * scale_best / 3600]
+    error = [(cp_x - axis_x) * scale_best / 3600, (cp_y - axis_y) * scale_best / 3600]
     return error
 
 

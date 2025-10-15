@@ -79,18 +79,19 @@ else:
 
 
 def formatError(err):
-    if error[0] > 0:
+    print(err)
+    if err[0] > 0:
         inst = 'Right '
     else:
         inst = 'Left '
-    decdeg = abs(error[0])
+    decdeg = abs(err[0])
     inst = inst + ('%02d:%02d:%02d' % PPA_lib.decdeg2dms(decdeg))
 
-    if error[1] > 0:
-        inst = inst + ' Up '
-    else:
+    if err[1] > 0:
         inst = inst + ' Down '
-    decdeg = abs(error[1])
+    else:
+        inst = inst + ' Up '
+    decdeg = abs(err[1])
     inst = inst + ('%02d:%02d:%02d' % PPA_lib.decdeg2dms(decdeg))
     return inst
 
