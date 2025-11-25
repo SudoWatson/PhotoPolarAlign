@@ -1,8 +1,8 @@
-import os
 import argparse
 import PPA_lib
 from astropy.io import fits
 
+# Parse arguments
 argParser = argparse.ArgumentParser(description="A python utility to help align any equotorial telescope by imaging the celestial pole region")
 
 argParser.add_argument("--solver", type=str, nargs="?", default=None, help="Whether to use online \"nova\" or \"local\" solver", required=True)
@@ -21,29 +21,12 @@ if args.solver not in solver_options:
     print("Option '--solver' must be one of " + str(solver_options))
     exit(2)
 
-"""
-Verify provided images exist or their WCS version in cache dir exists
-Verify config exists
-Load config
-Plate solve images without wcs
-Find error
-Return results
-"""
 print(args)
 
 config_file_path = args.config
 cache_dir = args.cache_dir
 return_more_data = args.more_data
 solver = args.solver
-
-
-###
-# TODO:
-# Get config params
-#    Separate config from PPA obj
-# Use local vs nova
-# Provide the "more" data output
-
 
 config = PPA_lib.PPAConfig()
 
@@ -52,6 +35,7 @@ def solve_img(imagePath):
     PPA_lib.plate_solve(config, imagePath, solver, cache_dir=cache_dir)
 
 
+# Solve images
 hImgPath = args.horizontal
 hWcsPath = PPA_lib.get_wcs_file_path(hImgPath, cache_dir)
 solve_img(hImgPath)
@@ -70,6 +54,8 @@ if iImgPath is not None:
     solve_img(iImgPath)
     hdulist_i = fits.open(iWcsPath)
 
+
+# Determine axis and error
 axis = PPA_lib.find_ra_axis_pix_coords(hdulist_v[0], hdulist_h[0])
 # Have the wcs files, just get the error
 if hdulist_i is None:
@@ -88,9 +74,9 @@ def formatError(err):
     inst = inst + ('%02d:%02d:%02d' % PPA_lib.decdeg2dms(decdeg))
 
     if err[1] > 0:
-        inst = inst + ' Down '
+        inst = inst + '   Down '
     else:
-        inst = inst + ' Up '
+        inst = inst + '   Up '
     decdeg = abs(err[1])
     inst = inst + ('%02d:%02d:%02d' % PPA_lib.decdeg2dms(decdeg))
     return inst
@@ -117,9 +103,9 @@ exit(1)
 # ppa-cli --horizontal-wcs /path/to/horiz/wcs --verticle-wcs /path/verticle/wcs --improvement /path/improvement/image
 # Returns > left: 0.856705  up: 1.456830
 
-# --horizontal will look in cache dir for wcs, --horizontal-wcs will use provided path to wcs
-# Or a --cache-dir instead of wcs option
-# --config
+# --horizontal will look in cache dir for wcs
+# --cache-dir changes cache dir to use
+# --config changes path to config to use
 
 # ppa-cli --horizontal /path/to/horiz/wcs --verticle /path/verticle/wcs --improvement /path/improvement/image --config /config.ini
 
@@ -129,7 +115,7 @@ exit(1)
 {
     hemi: 'n',
     scale: 1.6
-    error: {
+    error: { (in degrees)
         left: 0.856705,
         up: 1.456830,
     }
@@ -144,18 +130,6 @@ exit(1)
         dec: -1.456830
         alt: x,
         az: y
-    },
-    stars: [
-        {
-            star: "Polaris",
-            ra: 91,
-            dec: 3
-        },
-        {
-            star: "Lambda",
-            ra: 91,
-            dec: 3
-        },
-    ]
+    }
 }
 """

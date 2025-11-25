@@ -45,6 +45,7 @@ def scale_from_header(head):
     '''
     look in the plate-solution header for the scale information
     '''
+    # TODO: This should be determining the type of wcs file and getting information accordingly, not switching type when erroring out
     try:
         # nova's wcs files have the scale in the comments
         comments = head['COMMENT']
@@ -214,7 +215,7 @@ def find_ra_axis_pix_coords(v_fits, h_fits):
     # Parse the WCS keywords in the primary HDU
     header_v = v_fits.header
     header_h = h_fits.header
-    wcsv = wcs.WCS(header_v)  # TODO: This is the second FITSFixedWarning
+    wcsv = wcs.WCS(header_v)  # TODO: This is the second FITSFixedWarning. Something about image isn't included with the fits file?
     wcsh = wcs.WCS(header_h)
 
     width_h, height_h = width_height_from_header(header_h)
@@ -384,7 +385,7 @@ def local_img2wcs(config, filename, wcsfn, scale: float = None):
         if True:
             # first rough estimate of scale
             print('___________________________________________________________')
-            # solve-field provided by Astrometry.net package
+            # Run Astrometry.net package "solve-field" program to plate solve locally
             cmd = 'solve-field -b ' + config.local_configfile
             if scale is not None and config.restrict_scale == 1:
                 up_lim = scale * 1.05
@@ -497,6 +498,7 @@ def nova_img2wcs(config, filename, wcsfn, scale: float = None):
     #                   help='Select license to disallow commercial use of' +
     #                   ' submission')
 
+    # TODO: Allow some way to use these options. Likely in the config
     class options:
         def __init__(self):
             self.server = NovaClient.default_url
