@@ -74,6 +74,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: release_files
+          merge-multiple: true # Puts them all flat in the 'release_files'
 
       - name: Create Draft Release
         uses: softprops/action-gh-release@v2
