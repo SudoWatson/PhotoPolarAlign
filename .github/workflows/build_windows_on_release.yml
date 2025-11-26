@@ -1,26 +1,83 @@
-name: Build Windows executable (PyInstaller Action)
+name: Build and Create Draft Release
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - "v*"
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Windows x86_64
+          - os: windows-latest
+            label: windows
+            python: "3.10"
+
+          # Linux x86_64
+          - os: ubuntu-22.04
+            label: linux-x86_64
+            python: "3.10"
+
+          # Linux ARM64
+          - os: ubuntu-22.04-arm
+            label: linux-arm64
+            python: "3.10"
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Package Application (Windows .exe)
-        uses: JackMcKew/pyinstaller-action-windows@main
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          path: .
+          python-version: ${{ matrix.python }}
 
-      - name: Upload exe to GitHub Release
-        uses: svenstaro/upload-release-action@v2
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller -r requirements.txt
+
+      - name: Build GUI
+        run: |
+          pyinstaller --onefile --add-data "assets${{ runner.os == 'Windows' && ';' || ':' }}assets" PPA.py --name PPA-gui
+
+      - name: Build CLI
+        run: |
+          pyinstaller --onefile PPA-cli.py --name PPA-cli
+
+      - name: Upload GUI artifact
+        uses: actions/upload-artifact@v4
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dist/windows/PPA.exe
-          asset_name: PPA-windows-${{ github.ref_name }}.exe
-          tag: ${{ github.ref_name }}
+          path: dist/PPA-gui${{ runner.os == 'Windows' && '.exe' || '' }}
+          name: PPA-gui-${{ matrix.label }}
+
+      - name: Upload CLI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          path: dist/PPA-cli${{ runner.os == 'Windows' && '.exe' || '' }}
+          name: PPA-cli-${{ matrix.label }}
+
+  create_release:
+    needs: build
+    if: success()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts # All from this workflow
+        uses: actions/download-artifact@v4
+        with:
+          path: release_files
+          retention-days: 5
+
+      - name: Create Draft Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          tag_name: ${{ github.ref_name }}
+          name: "PhotoPolarAlign ${{ github.ref_name }}"
+          files: release_files/*
