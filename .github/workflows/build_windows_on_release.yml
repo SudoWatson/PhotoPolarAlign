@@ -55,12 +55,14 @@ jobs:
         with:
           path: dist/PPA-gui${{ runner.os == 'Windows' && '.exe' || '' }}
           name: PPA-gui-${{ matrix.label }}
+          retention-days: 5
 
       - name: Upload CLI artifact
         uses: actions/upload-artifact@v4
         with:
           path: dist/PPA-cli${{ runner.os == 'Windows' && '.exe' || '' }}
           name: PPA-cli-${{ matrix.label }}
+          retention-days: 5
 
   create_release:
     needs: build
@@ -72,7 +74,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: release_files
-          retention-days: 5
 
       - name: Create Draft Release
         uses: softprops/action-gh-release@v2
