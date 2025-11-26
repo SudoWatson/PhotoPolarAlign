@@ -50,17 +50,27 @@ jobs:
         run: |
           pyinstaller --onefile PPA-cli.py --name PPA-cli
 
+
+      - name: Rename GUI artifacts
+        run: |
+          cp dist/PPA-gui${{ runner.os == 'Windows' && '.exe' || '' }} dist/PPA-gui-${{ matrix.label }}${{ runner.os == 'Windows' && '.exe' || '' }}
+
+
+      - name: Rename CLI artifacts
+        run: |
+          cp dist/PPA-cli${{ runner.os == 'Windows' && '.exe' || '' }} dist/PPA-cli-${{ matrix.label }}${{ runner.os == 'Windows' && '.exe' || '' }}
+
       - name: Upload GUI artifact
         uses: actions/upload-artifact@v4
         with:
-          path: dist/PPA-gui${{ runner.os == 'Windows' && '.exe' || '' }}
+          path: dist/PPA-gui${{ runner.os == 'Windows' && '.exe' || '' }} dist/PPA-gui-${{ matrix.label }}${{ runner.os == 'Windows' && '.exe' || '' }}
           name: PPA-gui-${{ matrix.label }}
           retention-days: 5
 
       - name: Upload CLI artifact
         uses: actions/upload-artifact@v4
         with:
-          path: dist/PPA-cli${{ runner.os == 'Windows' && '.exe' || '' }}
+          path: dist/PPA-cli${{ runner.os == 'Windows' && '.exe' || '' }} dist/PPA-cli-${{ matrix.label }}${{ runner.os == 'Windows' && '.exe' || '' }}
           name: PPA-cli-${{ matrix.label }}
           retention-days: 5
 
@@ -80,6 +90,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           draft: true
+          body: ""
           tag_name: ${{ github.ref_name }}
           name: "PhotoPolarAlign ${{ github.ref_name }}"
           files: release_files/*
