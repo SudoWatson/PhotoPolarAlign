@@ -126,8 +126,11 @@ class PhotoPolarAlign(Frame):
         win.geometry('480x600')
         win.title('Settings')
 
+        var_cachedir = StringVar(value=self.config.cachedir)
+
         var_apikey = StringVar(value=self.config.apikey)
         var_restrict_scale = IntVar(value=self.config.restrict_scale)
+
         var_local_shell = StringVar(value=self.config.local_shell)
         var_local_downscale = IntVar(value=self.config.local_downscale)
         var_local_configfile = StringVar(value=self.config.local_configfile)
@@ -135,6 +138,13 @@ class PhotoPolarAlign(Frame):
         var_local_scale_low = DoubleVar(value=self.config.local_scale_low)
         var_local_scale_hi = DoubleVar(value=self.config.local_scale_hi)
         var_local_xtra = StringVar(value=self.config.local_xtra)
+
+        frm = LabelFrame(win, borderwidth=2, relief='ridge', text='Settings')
+        frm.pack(side='top', ipadx=20, padx=20, fill='x')
+        nxt = Label(frm, text='Cache Directory')
+        nxt.grid(row=0, column=0, pady=4, sticky='w')
+        nxt = Entry(frm, textvariable=var_cachedir)
+        nxt.grid(row=0, column=1, pady=4)
 
         frm = LabelFrame(win, borderwidth=2, relief='ridge', text='nova.astrometry.net')
         frm.pack(side='top', ipadx=20, padx=20, fill='x')
@@ -209,6 +219,7 @@ class PhotoPolarAlign(Frame):
         nxt.grid(row=7, column=0, pady=4, sticky='we', columnspan=3)
 
         def set_and_save_settings():
+            self.config.cachedir = var_cachedir.get()
             self.config.apikey = var_apikey.get()
             self.config.restrict_scale = var_restrict_scale.get()
             self.config.local_shell = var_local_shell.get()
@@ -781,9 +792,34 @@ class PhotoPolarAlign(Frame):
         nxt.pack(anchor='w')
         self.wstat = nxt
 
-    # Some CLI
     def __init__(self, master=None):
-        PPA_lib.init_ppa(self)
+        import numpy
+        # a F8Ib 2.0 mag star, Alpha Ursa Minoris
+        self.polaris = numpy.array([[037.954561, 89.264109]], numpy.float64)
+        #
+        # a M1III 6.4 mag star, Lambda Ursa Minoris
+        self.lam = numpy.array([[259.235229, 89.037706]], numpy.float64)
+        #
+        # a F0III 5.4 mag star, Sigma Octans
+        self.sigma = numpy.array([[317.195164, -88.956499]], numpy.float64)
+        #
+        # a K3IIICN 5.3 mag star, Chi Octans
+        self.chi = numpy.array([[283.696388, -87.605843]], numpy.float64)
+        #
+        # a M1III 7.2 mag star, HD90104
+        self.red = numpy.array([[130.522862, -89.460536]], numpy.float64)
+        #
+        # the pixel coords of the RA axis, if solution exists
+        self.axis = None
+        self.havea = False
+
+        self.scale = None
+        self.havescale = False
+        # the Settings window
+        self.settings_win = None
+        # the User preferences file
+        self.config = PPA_lib.PPAConfig()
+
         master.geometry(self.config.usergeo)
 
         # the filenames of images
