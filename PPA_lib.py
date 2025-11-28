@@ -36,6 +36,8 @@ class PPAConfig:
         self.apikey: str = ''
         self.restrict_scale: int = 0
 
+        self.cachedir: str = ''
+
         try:
             self.apikey = self.config_original.get('nova', 'apikey')
         except Exception as e:
@@ -253,7 +255,7 @@ def plate_solve(config: PPAConfig, image_path, solver, scale=None):
     Solve an image
     '''
     aimg = image_path
-    awcs = get_wcs_file_path(image_path, config.cachedir)
+    awcs = get_wcs_file_path(config, image_path)
     if os.path.exists(awcs):
         return  # Already solved
     elif not os.path.exists(aimg):
