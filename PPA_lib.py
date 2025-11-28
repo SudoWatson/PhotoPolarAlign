@@ -288,9 +288,9 @@ def find_error(axis, hdulist_best):
 
 
 class PPAConfig:
-    def __init__(self):
+    def __init__(self, config_file_path_override=None):
         import configparser
-        self.cfgfn = get_config_file_path()
+        self.cfgfn = config_file_path_override or get_config_file_path()
         self.config_original = configparser.ConfigParser()
         self.config_original.read(self.cfgfn)
 

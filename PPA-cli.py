@@ -10,8 +10,8 @@ argParser.add_argument("--horizontal", type=str, nargs="?", metavar="horizontal_
 argParser.add_argument("--vertical", type=str, nargs="?", metavar="vertical_file_path", default=None, help="The filepath to the vertical image", required=True)
 argParser.add_argument("--improved", type=str, nargs="?", metavar="improved_file_path", default=None, help="The filepath to the improved image after adjusting scope mount")
 
-argParser.add_argument("--cache-dir", type=str, nargs="?", default=PPA_lib.get_cache_file_path(), help="Filepath to look in for cached .wcs files")
-argParser.add_argument("--config", type=str, nargs="?", default=PPA_lib.get_config_file_path(), help="Filepath to config to use")
+argParser.add_argument("--cache-dir", type=str, nargs="?", help="Filepath to look in for cached .wcs files")
+argParser.add_argument("--config", type=str, nargs="?", help="Filepath to config to use")
 argParser.add_argument("--more-data", type=bool, nargs="?", default=False, help="Returns more detailed information")
 
 args = argParser.parse_args()
@@ -28,7 +28,7 @@ cache_dir = args.cache_dir
 return_more_data = args.more_data
 solver = args.solver
 
-config = PPA_lib.PPAConfig()
+config = PPA_lib.PPAConfig(config_file_path)
 
 
 def solve_img(imagePath):
