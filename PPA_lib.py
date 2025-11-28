@@ -18,6 +18,73 @@ def decdeg2dms(dd):
     return deg, mnt, sec
 
 
+class PPAConfig:
+    def __init__(self, config_file_path_override=None):
+        import configparser
+        self.cfgfn = config_file_path_override or get_config_file_path()
+        self.config_original = configparser.ConfigParser()
+        self.config_original.read(self.cfgfn)
+
+        self.local_shell: str = ''
+        self.local_downscale: int = 1
+        self.local_configfile: str = ''
+        self.local_scale_units: str = ''
+        self.local_scale_low: float = 0
+        self.local_scale_hi: float = 0
+        self.local_xtra: str = ''
+
+        self.apikey: str = ''
+        self.restrict_scale: int = 0
+
+        try:
+            self.apikey = self.config_original.get('nova', 'apikey')
+        except Exception as e:
+            print("Error reading 'apikey': " + str(e))
+
+        # ...the Image directory
+        try:
+            self.imgdir = self.config_original.get('file', 'imgdir')
+        except Exception as e:
+            print("Error reading 'imgdir': " + str(e))
+            self.imgdir = None
+
+        # ... Cache directory for WCS files
+        try:
+            self.cachedir = self.config_original.get('file', 'cachedir')
+            if self.cachedir is None or self.cachedir == "":
+                self.cachedir = get_cache_file_path()
+        except Exception:
+            self.cachedir = get_cache_file_path()
+
+        # ...geometry
+        try:
+            self.usergeo = self.config_original.get('appearance', 'geometry')
+        except Exception as e:
+            print("Error reading 'geometry': " + str(e))
+            self.usergeo = None
+        # do we want to help solves by restricting the scale once we have an estimate
+        try:
+            self.restrict_scale = self.config_original.getint('operations', 'restrict scale')
+        except Exception as e:
+            print("Error reading 'restrict scale': " + str(e))
+            self.restrict_scale = 0
+
+        try:
+            self.local_shell = self.config_original.get('local', 'shell')
+            self.local_downscale = self.config_original.getint('local', 'downscale')
+            self.local_configfile = self.config_original.get('local', 'configfile')
+            self.local_scale_units = self.config_original.get('local', 'scale_units')
+            self.local_scale_low = self.config_original.getfloat('local', 'scale_low')
+            self.local_scale_hi = self.config_original.getfloat('local', 'scale_hi')
+            self.local_xtra = self.config_original.get('local', 'xtra')
+            # check solve-field cmd
+            # exit_status = os.system(self.local_shell % 'solve-field > /dev/null')  # TODO: When this fails, disable local solve. Don't delete the settings
+            # if exit_status != 0:
+            #     print("Can't use local astrometry.net solver, check PATH")
+        except Exception as e:
+            print("Error loading local configs: " + str(e))
+
+
 def scale_frm_wcs(fn):
     from astropy.io import fits
     hdu = fits.open(fn)
@@ -125,9 +192,8 @@ def get_cache_file_path(cache_file_name: str = "") -> str:
     return os.path.join(dir, cache_file_name)
 
 
-def get_wcs_file_path(image_file_name: str, cache_dir_override: str = None):
-    cache_dir_override = cache_dir_override or get_cache_file_path()
-    return os.path.join(cache_dir_override, os.path.basename(os.path.splitext(image_file_name)[0] + '.wcs'))
+def get_wcs_file_path(config: PPAConfig, image_file_name: str):
+    return os.path.join(config.cachedir, os.path.basename(os.path.splitext(image_file_name)[0] + '.wcs'))
 
 
 def write_config_file(ppa):
@@ -182,12 +248,12 @@ def update_scale(ppa, hint):
         return
 
 
-def plate_solve(config, image_path, solver, scale=None, cache_dir=get_cache_file_path()):
+def plate_solve(config: PPAConfig, image_path, solver, scale=None):
     '''
     Solve an image
     '''
     aimg = image_path
-    awcs = get_wcs_file_path(image_path, cache_dir)
+    awcs = get_wcs_file_path(image_path, config.cachedir)
     if os.path.exists(awcs):
         return  # Already solved
     elif not os.path.exists(aimg):
@@ -287,74 +353,7 @@ def find_error(axis, hdulist_best):
     return error
 
 
-class PPAConfig:
-    def __init__(self, config_file_path_override=None):
-        import configparser
-        self.cfgfn = config_file_path_override or get_config_file_path()
-        self.config_original = configparser.ConfigParser()
-        self.config_original.read(self.cfgfn)
-
-        self.local_shell: str = ''
-        self.local_downscale: int = 1
-        self.local_configfile: str = ''
-        self.local_scale_units: str = ''
-        self.local_scale_low: float = 0
-        self.local_scale_hi: float = 0
-        self.local_xtra: str = ''
-
-        self.apikey: str = ''
-        self.restrict_scale: int = 0
-
-        try:
-            self.apikey = self.config_original.get('nova', 'apikey')
-        except Exception as e:
-            print("Error reading 'apikey': " + str(e))
-
-        # ...the Image directory
-        try:
-            self.imgdir = self.config_original.get('file', 'imgdir')
-        except Exception as e:
-            print("Error reading 'imgdir': " + str(e))
-            self.imgdir = None
-
-        # ... Cache directory for WCS files
-        try:
-            self.cachedir = self.config_original.get('file', 'cachedir')
-            if self.cachedir is None or self.cachedir == "":
-                self.cachedir = get_cache_file_path()
-        except Exception:
-            self.cachedir = get_cache_file_path()
-
-        # ...geometry
-        try:
-            self.usergeo = self.config_original.get('appearance', 'geometry')
-        except Exception as e:
-            print("Error reading 'geometry': " + str(e))
-            self.usergeo = None
-        # do we want to help solves by restricting the scale once we have an estimate
-        try:
-            self.restrict_scale = self.config_original.getint('operations', 'restrict scale')
-        except Exception as e:
-            print("Error reading 'restrict scale': " + str(e))
-            self.restrict_scale = 0
-
-        try:
-            self.local_shell = self.config_original.get('local', 'shell')
-            self.local_downscale = self.config_original.getint('local', 'downscale')
-            self.local_configfile = self.config_original.get('local', 'configfile')
-            self.local_scale_units = self.config_original.get('local', 'scale_units')
-            self.local_scale_low = self.config_original.getfloat('local', 'scale_low')
-            self.local_scale_hi = self.config_original.getfloat('local', 'scale_hi')
-            self.local_xtra = self.config_original.get('local', 'xtra')
-            # check solve-field cmd
-            # exit_status = os.system(self.local_shell % 'solve-field > /dev/null')  # TODO: When this fails, disable local solve. Don't delete the settings
-            # if exit_status != 0:
-            #     print("Can't use local astrometry.net solver, check PATH")
-        except Exception as e:
-            print("Error loading local configs: " + str(e))
-
-
-def local_img2wcs(config, filename, wcsfn, scale: float = None):
+def local_img2wcs(config: PPAConfig, filename, wcsfn, scale: float = None):
     import os
     import time
     t_start = time.time()
@@ -393,7 +392,7 @@ def local_img2wcs(config, filename, wcsfn, scale: float = None):
     print('___________________________________________________________')
 
 
-def nova_img2wcs(config, filename, wcsfn, scale: float = None):
+def nova_img2wcs(config: PPAConfig, filename, wcsfn, scale: float = None):
     '''
     Plate solves one image
     '''

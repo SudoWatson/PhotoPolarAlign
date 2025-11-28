@@ -29,20 +29,21 @@ return_more_data = args.more_data
 solver = args.solver
 
 config = PPA_lib.PPAConfig(config_file_path)
+config.cachedir = cache_dir or config.cachedir
 
 
 def solve_img(imagePath):
-    PPA_lib.plate_solve(config, imagePath, solver, cache_dir=cache_dir)
+    PPA_lib.plate_solve(config, imagePath, solver)
 
 
 # Solve images
 hImgPath = args.horizontal
-hWcsPath = PPA_lib.get_wcs_file_path(hImgPath, cache_dir)
+hWcsPath = PPA_lib.get_wcs_file_path(config, hImgPath)
 solve_img(hImgPath)
 hdulist_h = fits.open(hWcsPath)
 
 vImgPath = args.vertical
-vWcsPath = PPA_lib.get_wcs_file_path(vImgPath, cache_dir)
+vWcsPath = PPA_lib.get_wcs_file_path(config, vImgPath)
 solve_img(vImgPath)
 hdulist_v = fits.open(vWcsPath)
 
@@ -50,7 +51,7 @@ iImgPath = args.improved
 iWcsPath = None
 hdulist_i = None
 if iImgPath is not None:
-    iWcsPath = PPA_lib.get_wcs_file_path(iImgPath, cache_dir)
+    iWcsPath = PPA_lib.get_wcs_file_path(config, iImgPath)
     solve_img(iImgPath)
     hdulist_i = fits.open(iWcsPath)
 
